@@ -1,0 +1,12 @@
+{
+  "name": "Idea Printer",
+  "short_name": "IdeaPrinter",
+  "description": "Generate unique, market-driven app ideas with our retro printer interface",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e0dcd5",
+  "theme_color": "#E63946",
+  "orientation": "portrait-primary",
+  "icons": [],
+  "categories": ["productivity", "business", "utilities"]
+}

@@ -1,0 +1,414 @@
+openapi: 3.1.0
+info:
+  title: Idea Printer API
+  description: API endpoints for generating and managing app ideas with retro printer interface
+  version: 1.0.0
+  contact:
+    name: Idea Printer Team
+
+servers:
+  - url: https://idea-printer.vercel.app/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Local development server
+
+paths:
+  /generate-idea:
+    post:
+      summary: Generate a new app idea
+      description: |
+        Generates a unique, market-driven app idea using Gemini 2.0 Flash AI.
+        Returns structured idea with app name, category, concept, gap, and fix.
+        Must complete within 5 seconds to meet performance requirements.
+      operationId: generateIdea
+      tags:
+        - Ideas
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userApiKey:
+                  type: string
+                  description: Optional user-provided Gemini API key
+                  example: "AIzaSyC1234567890abcdefghijklmnopqrstuv"
+                  minLength: 39
+                  maxLength: 39
+                preferredCategory:
+                  type: string
+                  description: Optional preferred category for idea generation
+                  enum: [Technology, Travel, Finance, Health, Education, Entertainment, Productivity, Social, E-commerce, Other]
+                  example: "Travel"
+      responses:
+        '200':
+          description: Idea generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedIdea'
+              example:
+                id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                appName: "NomadNest"
+                category: "Travel"
+                concept: "Apartments with verified wifi speeds."
+                theGap: "Airbnbs claim 'high-speed wifi' but often deliver 2Mbps."
+                theFix: "A rental platform where every listing requires a verified, timestamped speed test screenshot uploaded weekly."
+                generatedAt: "2025-12-23T10:30:00Z"
+                uniqueId: "NI4QMZ2B"
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Invalid API key format"
+                code: "INVALID_REQUEST"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Too many requests. Please try again in 60 seconds."
+                code: "RATE_LIMIT_EXCEEDED"
+        '500':
+          description: Internal server error or AI generation failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Failed to generate idea. Please try again."
+                code: "GENERATION_FAILED"
+        '504':
+          description: Generation timeout (exceeded 5 seconds)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Idea generation timed out. Please try again."
+                code: "TIMEOUT"
+
+  /ideas/history:
+    get:
+      summary: Get user's idea generation history
+      description: |
+        Retrieves paginated list of previously generated ideas for the current user.
+        Requires user session or authentication token.
+      operationId: getIdeaHistory
+      tags:
+        - Ideas
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination (1-based)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of ideas per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Idea history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ideas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GeneratedIdea'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              example:
+                ideas:
+                  - id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                    appName: "NomadNest"
+                    category: "Travel"
+                    concept: "Apartments with verified wifi speeds."
+                    theGap: "Airbnbs claim 'high-speed wifi' but often deliver 2Mbps."
+                    theFix: "A rental platform where every listing requires a verified, timestamped speed test screenshot uploaded weekly."
+                    generatedAt: "2025-12-23T10:30:00Z"
+                    uniqueId: "NI4QMZ2B"
+                pagination:
+                  page: 1
+                  limit: 20
+                  totalItems: 45
+                  totalPages: 3
+        '401':
+          description: Unauthorized - user not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ideas/{ideaId}:
+    get:
+      summary: Get a specific idea by ID
+      description: Retrieves a single generated idea by its unique identifier
+      operationId: getIdeaById
+      tags:
+        - Ideas
+      parameters:
+        - name: ideaId
+          in: path
+          description: UUID of the generated idea
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Idea retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedIdea'
+        '404':
+          description: Idea not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Idea not found"
+                code: "NOT_FOUND"
+
+    delete:
+      summary: Delete a generated idea
+      description: |
+        Soft deletes a generated idea from user's history.
+        Idea is marked as deleted but retained for 30 days.
+      operationId: deleteIdea
+      tags:
+        - Ideas
+      parameters:
+        - name: ideaId
+          in: path
+          description: UUID of the generated idea
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Idea deleted successfully
+        '404':
+          description: Idea not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /config:
+    get:
+      summary: Get user configuration
+      description: Retrieves current user's configuration including API key status and preferences
+      operationId: getUserConfig
+      tags:
+        - Configuration
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConfiguration'
+              example:
+                hasCustomApiKey: true
+                preferredCategories: ["Travel", "Technology"]
+                generationCount: 23
+        '401':
+          description: Unauthorized - user not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update user configuration
+      description: Updates user's API key and preferences
+      operationId: updateUserConfig
+      tags:
+        - Configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                geminiApiKey:
+                  type: string
+                  description: Gemini API key (will be encrypted before storage)
+                  example: "AIzaSyC1234567890abcdefghijklmnopqrstuv"
+                preferredCategories:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 5
+                  description: Preferred categories for idea generation
+                  example: ["Travel", "Technology"]
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConfiguration'
+        '400':
+          description: Invalid configuration data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    GeneratedIdea:
+      type: object
+      required:
+        - id
+        - appName
+        - category
+        - concept
+        - theGap
+        - theFix
+        - generatedAt
+        - uniqueId
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the idea
+        appName:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Memorable name for the app concept
+        category:
+          type: string
+          enum: [Technology, Travel, Finance, Health, Education, Entertainment, Productivity, Social, E-commerce, Other]
+          description: Market segment or domain
+        concept:
+          type: string
+          minLength: 10
+          maxLength: 200
+          description: One-sentence description of what the app does
+        theGap:
+          type: string
+          minLength: 20
+          maxLength: 500
+          description: Clear statement of the market problem being addressed
+        theFix:
+          type: string
+          minLength: 20
+          maxLength: 500
+          description: Explanation of how the app solves the identified problem
+        generatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the idea was created
+        uniqueId:
+          type: string
+          minLength: 8
+          maxLength: 8
+          pattern: '^[A-Z0-9]{8}$'
+          description: Display ID for the printout (e.g., "NI4QMZ2B")
+
+    UserConfiguration:
+      type: object
+      required:
+        - hasCustomApiKey
+        - generationCount
+      properties:
+        hasCustomApiKey:
+          type: boolean
+          description: Whether user has provided a custom API key
+        preferredCategories:
+          type: array
+          items:
+            type: string
+          maxItems: 5
+          description: User's preferred idea categories
+        generationCount:
+          type: integer
+          minimum: 0
+          description: Total number of ideas generated by this user
+
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - totalItems
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+        limit:
+          type: integer
+          minimum: 1
+          description: Items per page
+        totalItems:
+          type: integer
+          minimum: 0
+          description: Total number of items across all pages
+        totalPages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+          enum:
+            - INVALID_REQUEST
+            - RATE_LIMIT_EXCEEDED
+            - GENERATION_FAILED
+            - TIMEOUT
+            - NOT_FOUND
+            - UNAUTHORIZED
+            - INTERNAL_ERROR
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session
+      description: Session-based authentication via HTTP-only cookie
+
+security:
+  - cookieAuth: []
+
+tags:
+  - name: Ideas
+    description: Operations for generating and managing app ideas
+  - name: Configuration
+    description: User configuration and preferences management
