@@ -33,7 +33,7 @@ paths:
                 userApiKey:
                   type: string
                   description: Optional user-provided Gemini API key
-                  example: "AIzaSyC1234567890abcdefghijklmnopqrstuv"
+                  example: "<<Removed_as_github_security_detected"
                   minLength: 39
                   maxLength: 39
                 preferredCategory:
