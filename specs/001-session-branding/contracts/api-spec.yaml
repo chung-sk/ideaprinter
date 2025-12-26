@@ -1,0 +1,110 @@
+openapi: 3.1.0
+info:
+  title: IdeaPrinter API (Session Limits & Branding)
+  version: 1.0.0
+  description: |
+    API contracts for anonymous session tracking and per-session call limits.
+servers:
+  - url: /
+paths:
+  /api/session:
+    get:
+      summary: Get current anonymous session and quota
+      responses:
+        '200':
+          description: Session information and remaining allowance
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sessionId, quota]
+                properties:
+                  sessionId:
+                    type: string
+                    description: Anonymous, non-sensitive session identifier
+                  quota:
+                    type: object
+                    required: [dailyRemaining, minuteRemaining, dailyResetAt, minuteResetAt]
+                    properties:
+                      dailyRemaining:
+                        type: integer
+                        minimum: 0
+                      minuteRemaining:
+                        type: integer
+                        minimum: 0
+                      dailyResetAt:
+                        type: string
+                        format: date-time
+                      minuteResetAt:
+                        type: string
+                        format: date-time
+  /api/generate-idea:
+    post:
+      summary: Generate a new idea (rate limited per session)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferredCategory:
+                  type: string
+                modelName:
+                  type: string
+                userApiKey:
+                  type: string
+      responses:
+        '200':
+          description: Generated idea
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: string
+            X-RateLimit-Remaining:
+              schema:
+                type: string
+            X-RateLimit-Reset:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, appName, category, concept, theGap, theFix, generatedAt]
+                properties:
+                  id:
+                    type: string
+                  appName:
+                    type: string
+                  category:
+                    type: string
+                  concept:
+                    type: string
+                  theGap:
+                    type: string
+                  theFix:
+                    type: string
+                  generatedAt:
+                    type: string
+                    format: date-time
+        '429':
+          description: Session quota exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error, message, retryAfter]
+                properties:
+                  error:
+                    type: string
+                    enum: [RATE_LIMIT_EXCEEDED]
+                  message:
+                    type: string
+                  retryAfter:
+                    type: integer
+                    minimum: 1

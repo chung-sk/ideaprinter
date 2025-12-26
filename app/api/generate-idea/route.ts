@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { 
+  checkGlobalQuota, 
+  incrementGlobalQuota, 
+  isUsingSharedKey 
+} from '@/lib/auth/globalQuota';
 import { createGeminiClient } from '@/lib/gemini/client';
 import { createIdeaPrompt } from '@/lib/gemini/prompts';
 import { generateUniqueId } from '@/lib/utils/idGenerator';
@@ -25,6 +30,25 @@ export async function POST(request: NextRequest) {
     const body: IdeaGenerationRequest = await request.json().catch(() => ({}));
     userApiKey = body.userApiKey;
     const { preferredCategory, modelName } = body;
+
+    // Determine if using shared key
+    const usingSharedKey = isUsingSharedKey(userApiKey);
+
+    // Global Quota Check (only for shared key)
+    if (usingSharedKey) {
+      const quotaStatus = checkGlobalQuota();
+      
+      if (!quotaStatus.isAllowed) {
+        return NextResponse.json(
+          { 
+            error: 'Shared API key quota exhausted. Please try again later or provide your own API key.', 
+            code: 'RATE_LIMIT_EXCEEDED',
+            retryAfter: quotaStatus.retryAfter
+          },
+          { status: 429 }
+        );
+      }
+    }
 
     // Log generation request
     logGenerationRequest({
@@ -87,6 +111,11 @@ export async function POST(request: NextRequest) {
 
     // Calculate duration
     const durationMs = Date.now() - startTime;
+
+    // Increment global quota (only for shared key)
+    if (usingSharedKey) {
+      incrementGlobalQuota();
+    }
 
     // Construct response
     const response: IdeaGenerationResponse = {

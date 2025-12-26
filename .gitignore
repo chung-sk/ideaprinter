@@ -83,3 +83,4 @@ logs/
 /docs
 DEPLOYMENT_GUIDE.md
 CLAUDE.md
+/tests

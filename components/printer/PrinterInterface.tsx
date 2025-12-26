@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { GeneratedIdea, IdeaGenerationResponse, GenerationRequest } from '@/lib/types/idea';
 import { saveGeneratedIdea, saveGenerationRequest, updateGenerationRequest, getUserConfig, checkIdeaUniqueness } from '@/lib/utils/storage';
 import { decryptApiKey } from '@/lib/utils/encryption';
+import { fetchQuotaInfo, QuotaInfo } from '@/lib/auth/sessionClient';
 import { v4 as uuidv4 } from 'uuid';
 import { motion } from 'framer-motion';
 import { Shuffle, Trash2, Settings, History } from 'lucide-react';
@@ -26,6 +27,8 @@ export default function PrinterInterface() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
+  const [userApiKey, setUserApiKey] = useState<string | undefined>();
 
   useEffect(() => {
     // Check for reduced motion preference
@@ -54,6 +57,9 @@ export default function PrinterInterface() {
     
     document.addEventListener('click', resumeAudio);
     document.addEventListener('touchstart', resumeAudio);
+
+    // Load user API key and fetch quota info on mount
+    loadUserConfig();
     
     return () => {
       window.removeEventListener('resize', checkMobile);
@@ -61,7 +67,31 @@ export default function PrinterInterface() {
       document.removeEventListener('click', resumeAudio);
       document.removeEventListener('touchstart', resumeAudio);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadUserConfig = async () => {
+    const userConfig = getUserConfig();
+    if (userConfig?.encryptedGeminiApiKey) {
+      try {
+        const decryptedKey = await decryptApiKey(userConfig.encryptedGeminiApiKey);
+        setUserApiKey(decryptedKey);
+        loadQuotaInfo(decryptedKey);
+      } catch (decryptError) {
+        console.error('Failed to decrypt API key:', decryptError);
+        loadQuotaInfo();
+      }
+    } else {
+      loadQuotaInfo();
+    }
+  };
+
+  const loadQuotaInfo = async (apiKey?: string) => {
+    const info = await fetchQuotaInfo(apiKey);
+    if (info) {
+      setQuotaInfo(info);
+    }
+  };
 
   const handleShuffle = () => {
     const randomCategory = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
@@ -91,17 +121,20 @@ export default function PrinterInterface() {
     playSound('paperFeed', 0.5);
 
     // Get user configuration (API key, preferred model, categories)
-    let userApiKey: string | undefined;
+    let currentApiKey: string | undefined = userApiKey;
     let preferredModel: string | undefined;
     const userConfig = getUserConfig();
-    if (userConfig?.encryptedGeminiApiKey) {
+    
+    // Only fetch API key if not already loaded
+    if (!currentApiKey && userConfig?.encryptedGeminiApiKey) {
       try {
-        userApiKey = await decryptApiKey(userConfig.encryptedGeminiApiKey);
+        currentApiKey = await decryptApiKey(userConfig.encryptedGeminiApiKey);
       } catch (decryptError) {
         console.error('Failed to decrypt API key:', decryptError);
         // Continue with default key
       }
     }
+    
     if (userConfig?.preferredModel) {
       preferredModel = userConfig.preferredModel;
     }
@@ -112,7 +145,7 @@ export default function PrinterInterface() {
       id: requestId,
       status: 'pending',
       startedAt: new Date().toISOString(),
-      apiKeySource: userApiKey ? 'user_provided' : 'default',
+      apiKeySource: currentApiKey ? 'user_provided' : 'default',
     };
 
     // Save request to sessionStorage
@@ -136,7 +169,7 @@ export default function PrinterInterface() {
         },
         body: JSON.stringify({
           preferredCategory: selectedCategory, // Pass selected category if any
-          userApiKey: userApiKey, // Pass user's API key if available
+          userApiKey: currentApiKey, // Pass user's API key if available
           modelName: preferredModel, // Pass preferred model if configured
         }),
         signal: controller.signal,
@@ -146,6 +179,19 @@ export default function PrinterInterface() {
 
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // Handle rate limit errors specially
+        if (response.status === 429) {
+          const retrySeconds = errorData.retryAfter || 60;
+          const retryMinutes = Math.ceil(retrySeconds / 60);
+          const timeUnit = retrySeconds < 120 ? `${retrySeconds} seconds` : `${retryMinutes} minutes`;
+          
+          throw new Error(
+            errorData.error || errorData.message || 
+            `Rate limit exceeded. Please try again in ${timeUnit}.`
+          );
+        }
+        
         throw new Error(errorData.error || 'Failed to generate idea');
       }
 
@@ -192,6 +238,9 @@ export default function PrinterInterface() {
 
       setIdea(generatedIdea);
       
+      // Reload quota info to get updated count
+      loadQuotaInfo(currentApiKey);
+      
       // Play completion sound
       playSound('complete', 0.6);
     } catch (err) {
@@ -219,7 +268,33 @@ export default function PrinterInterface() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-[#e0dcd5]">
+    <div className="min-h-screen flex flex-col items-center p-4 md:p-8 pt-24 md:pt-32 bg-[#e0dcd5]">
+      {/* Quota Info - Top Left */}
+      <div className="fixed top-8 left-8 bg-white rounded-lg shadow-lg p-4 z-50 max-w-xs">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-mono">API Key:</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {quotaInfo?.keyMode === 'shared' ? 'Shared' : 'Your Key'}
+            </span>
+          </div>
+          {quotaInfo?.keyMode === 'shared' ? (
+            <div className="text-xs text-gray-600 space-y-1">
+              <div className="flex justify-between">
+                <span>Daily remaining:</span>
+                <span className="font-semibold">
+                  {quotaInfo.remainingDaily !== undefined ? `${quotaInfo.remainingDaily}/30` : '...'}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-green-600">
+              <span>No quota restrictions</span>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Top Navigation (Settings and History) */}
       <div className="fixed top-8 right-8 flex gap-4 z-50">
         <Link
@@ -240,7 +315,7 @@ export default function PrinterInterface() {
 
       {/* Printer Body */}
       <motion.div 
-        className="bg-[#E63946] rounded-[40px] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.3)] max-w-4xl w-full border-b-[12px] border-r-[12px] border-[#9D1722] relative"
+        className="bg-[#E63946] rounded-[40px] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.3)] max-w-4xl w-full border-b-[12px] border-r-[12px] border-[#9D1722] relative my-auto"
         variants={reducedMotion || isMobile ? undefined : printerBodyVariants}
         animate={reducedMotion || isMobile ? undefined : (isLoading ? "printing" : idea ? "complete" : "idle")}
         transition={reducedMotion ? { duration: 0.01 } : undefined}
