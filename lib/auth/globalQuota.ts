@@ -18,6 +18,7 @@ interface GlobalQuotaState {
 
 // Use globalThis to survive HMR in development
 declare global {
+  // eslint-disable-next-line no-var
   var __quotaState: GlobalQuotaState | undefined;
 }
 
