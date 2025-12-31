@@ -112,7 +112,6 @@ async function fetchFeed(feedUrl: string): Promise<RawTrendPost[]> {
           // However, if it's an array of links, we take the first one
           // If it's a simple object, we look for href
           // For now, let's try to find a string value or href
-          // @ts-expect-error - XML parser type mismatch
           link = link['@_href'] || link['href'] || link['url'] || undefined
         }
         

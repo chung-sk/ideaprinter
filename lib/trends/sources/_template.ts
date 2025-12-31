@@ -14,6 +14,7 @@ import type { TrendSourceProvider, RawTrendPost, FetchOptions } from './types'
  */
 export const TemplateSource: TrendSourceProvider = {
   // TODO: Change 'template' to your source identifier (lowercase, underscores)
+  // @ts-expect-error - This is a template file, replace 'template' with actual source kind
   kind: 'template',
   
   // TODO: Change to a human-readable name for your source

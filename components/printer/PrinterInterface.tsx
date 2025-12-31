@@ -197,9 +197,8 @@ export default function PrinterInterface() {
       if (mode === 'trend' && selectedTrendPost) {
         requestBody.trendContext = {
           content: selectedTrendPost.excerpt,
-          source: selectedTrendPost.sourceKind,
-          author: selectedTrendPost.author,
-          url: selectedTrendPost.sourceUrl
+          source: selectedTrendPost.sourceKind || 'unknown',
+          author: selectedTrendPost.author ?? undefined
         };
       }
 
