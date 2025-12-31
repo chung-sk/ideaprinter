@@ -29,6 +29,7 @@ export const TemplateSource: TrendSourceProvider = {
    * @returns Array of raw trend posts
    */
   async fetch(options: FetchOptions = {}): Promise<RawTrendPost[]> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { limit: _limit = 30 } = options
 
     try {
