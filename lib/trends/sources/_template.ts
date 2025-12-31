@@ -29,7 +29,7 @@ export const TemplateSource: TrendSourceProvider = {
    * @returns Array of raw trend posts
    */
   async fetch(options: FetchOptions = {}): Promise<RawTrendPost[]> {
-    const { limit = 30 } = options
+    const { limit: _limit = 30 } = options
 
     try {
       // TODO: Implement your fetching logic here
@@ -53,7 +53,7 @@ export const TemplateSource: TrendSourceProvider = {
       //   sourceUrl: item.url,
       // }))
       //
-      // return posts.slice(0, limit)
+      // return posts.slice(0, _limit)
 
       throw new Error('Template source not implemented - see lib/trends/sources/_template.ts')
     } catch (error) {
