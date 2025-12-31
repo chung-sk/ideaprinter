@@ -28,7 +28,7 @@ export default function PrinterInterface() {
   const [idea, setIdea] = useState<GeneratedIdea | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
@@ -120,8 +120,8 @@ export default function PrinterInterface() {
   const handleTrash = () => {
     setIdea(null);
     setError(null);
-    setSelectedCategory(null);
-    
+    setSelectedCategory(undefined);
+
     // Play trash sound
     playSound('paperFeed', 0.3);
   };
