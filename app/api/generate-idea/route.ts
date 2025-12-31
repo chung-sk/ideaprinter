@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body: IdeaGenerationRequest = await request.json().catch(() => ({}));
     userApiKey = body.userApiKey;
-    const { preferredCategory, modelName } = body;
+    const { preferredCategory, modelName, trendContext } = body;
 
     // Determine if using shared key
     const usingSharedKey = isUsingSharedKey(userApiKey);
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const geminiClient = createGeminiClient(userApiKey, modelName);
 
     // Generate prompt
-    const prompt = createIdeaPrompt(preferredCategory);
+    const prompt = createIdeaPrompt(preferredCategory, trendContext);
 
     // Generate idea with 50-second timeout (within the 60s route limit)
     const responseText = await geminiClient.generateIdea(prompt, 50000);

@@ -6,6 +6,7 @@ import { Eye, EyeOff, Save, Trash2, Check, X } from 'lucide-react';
 import { encryptApiKey, decryptApiKey, validateGeminiApiKey } from '@/lib/utils/encryption';
 import { getUserConfig, saveUserConfig } from '@/lib/utils/storage';
 import type { UserConfiguration, IdeaCategory, GeminiModel } from '@/lib/types/idea';
+import type { TrendSourceKind } from '@/lib/types/trends';
 import { GEMINI_MODELS } from '@/lib/types/idea';
 
 const CATEGORIES: IdeaCategory[] = [
@@ -30,6 +31,12 @@ const MODEL_DESCRIPTIONS: Record<GeminiModel, string> = {
   'gemini-3-flash-preview': '🧪 Preview - Cutting edge, experimental features',
 };
 
+const TREND_SOURCES: { kind: TrendSourceKind; label: string; description: string; requiresAuth?: boolean }[] = [
+  { kind: 'hackernews', label: 'Hacker News', description: 'Top stories from Y Combinator' },
+  { kind: 'rss_bundle', label: 'Tech News (RSS)', description: 'Curated tech feeds (TechCrunch, Verge, etc.)' },
+  { kind: 'x_twitter', label: 'X (Twitter)', description: 'Search tweets (requires bearer token)', requiresAuth: true },
+];
+
 interface CredentialsFormProps {
   onClose?: () => void;
   onSave?: (config: UserConfiguration) => void;
@@ -39,7 +46,11 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [selectedModel, setSelectedModel] = useState<GeminiModel>('gemini-2.5-flash');
+  const [selectedSource, setSelectedSource] = useState<TrendSourceKind>('hackernews');
   const [selectedCategories, setSelectedCategories] = useState<IdeaCategory[]>([]);
+  const [xBearerToken, setXBearerToken] = useState('');
+  const [showXToken, setShowXToken] = useState(false);
+  const [xQuery, setXQuery] = useState('AI trends');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +62,24 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
     if (config) {
       setHasExistingKey(!!config.encryptedGeminiApiKey);
       setSelectedModel(config.preferredModel || 'gemini-2.5-flash');
+      setSelectedSource(config.preferredSource || 'hackernews');
       setSelectedCategories(config.preferredCategories || []);
+      
+      // Load X/Twitter config if present
+      if (config.encryptedXBearerToken) {
+        decryptApiKey(config.encryptedXBearerToken)
+          .then((token) => {
+            const masked = `${token.substring(0, 10)}...${token.substring(token.length - 4)}`;
+            setXBearerToken(masked);
+          })
+          .catch(() => {
+            // Decryption failed
+            setXBearerToken('');
+          });
+      }
+      if (config.xTwitterConfig?.defaultQuery) {
+        setXQuery(config.xTwitterConfig.defaultQuery);
+      }
       
       // Try to decrypt and display existing key (masked)
       if (config.encryptedGeminiApiKey) {
@@ -141,13 +169,28 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
         const existingConfig = getUserConfig();
         encryptedKey = existingConfig?.encryptedGeminiApiKey;
       }
+      
+      // Encrypt X bearer token if provided and not masked
+      let encryptedXToken: string | undefined;
+      if (xBearerToken && !xBearerToken.includes('...')) {
+        encryptedXToken = await encryptApiKey(xBearerToken);
+      } else if (getUserConfig()?.encryptedXBearerToken) {
+        // Keep existing encrypted token
+        encryptedXToken = getUserConfig()?.encryptedXBearerToken;
+      }
 
       // Create configuration object
       const config: UserConfiguration = {
         id: getUserConfig()?.id || crypto.randomUUID(),
         encryptedGeminiApiKey: encryptedKey,
         preferredModel: selectedModel,
+        preferredSource: selectedSource,
         preferredCategories: selectedCategories,
+        encryptedXBearerToken: encryptedXToken,
+        xTwitterConfig: encryptedXToken ? {
+          hasToken: true,
+          defaultQuery: xQuery || undefined,
+        } : undefined,
         generationCount: getUserConfig()?.generationCount || 0,
         createdAt: getUserConfig()?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -189,6 +232,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
         id: existingConfig?.id || crypto.randomUUID(),
         encryptedGeminiApiKey: undefined,
         preferredModel: selectedModel,
+        preferredSource: selectedSource,
         preferredCategories: selectedCategories,
         generationCount: existingConfig?.generationCount || 0,
         createdAt: existingConfig?.createdAt || new Date().toISOString(),
@@ -312,6 +356,105 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
           ))}
         </select>
       </div>
+
+      {/* Trend Source Selection */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Trend Source
+        </label>
+        <p className="text-sm text-gray-500 mb-3">
+          Choose where to fetch trends from for idea generation.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {TREND_SOURCES.map((source) => (
+            <button
+              key={source.kind}
+              onClick={() => setSelectedSource(source.kind)}
+              disabled={isLoading}
+              className={`p-3 rounded-lg border-2 text-left transition-all ${
+                selectedSource === source.kind
+                  ? 'bg-red-50 border-red-600'
+                  : 'bg-white border-gray-300 hover:border-red-400'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className={`font-medium ${selectedSource === source.kind ? 'text-red-700' : 'text-gray-900'}`}>
+                  {source.label}
+                </span>
+                {selectedSource === source.kind && <Check className="w-4 h-4 text-red-600" />}
+              </div>
+              <p className="text-xs text-gray-500">{source.description}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* X/Twitter Configuration (conditional) */}
+      {selectedSource === 'x_twitter' && (
+        <div className="mb-8 p-4 border-2 border-yellow-200 bg-yellow-50 rounded-lg">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">X (Twitter) Configuration</h3>
+          
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Bearer Token (Required)
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Your X API bearer token for authentication.
+            </p>
+            <div className="relative">
+              <input
+                type={showXToken ? 'text' : 'password'}
+                value={xBearerToken}
+                onChange={(e) => setXBearerToken(e.target.value)}
+                placeholder="AAAAAAAAAAAAAAAAAAAAAxxxx..."
+                className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowXToken(!showXToken)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+                aria-label={showXToken ? 'Hide token' : 'Show token'}
+              >
+                {showXToken ? (
+                  <EyeOff className="w-4 h-4 text-gray-400" />
+                ) : (
+                  <Eye className="w-4 h-4 text-gray-400" />
+                )}
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Default Search Query
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              The query to use when searching tweets (e.g., "AI trends", "startups").
+            </p>
+            <input
+              type="text"
+              value={xQuery}
+              onChange={(e) => setXQuery(e.target.value)}
+              placeholder="AI trends"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
+              disabled={isLoading}
+            />
+          </div>
+          
+          <p className="text-xs text-gray-600 mt-3">
+            <strong>Note:</strong> X API requires authentication. Get your bearer token from the{' '}
+            <a
+              href="https://developer.x.com/en/portal/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-red-600 hover:text-red-700 underline"
+            >
+              X Developer Portal
+            </a>.
+          </p>
+        </div>
+      )}
 
       {/* Preferred Categories Section */}
       <div className="mb-8">

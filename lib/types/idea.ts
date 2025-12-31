@@ -1,3 +1,5 @@
+import type { TrendProvenance, TrendSourceKind } from './trends';
+
 export const IDEA_CATEGORIES = [
   'Technology',
   'Travel',
@@ -25,6 +27,7 @@ export interface GeneratedIdea {
   generatedAt: string; // ISO 8601
   uniqueId: string;
   deletedAt?: string; // ISO 8601, for soft delete
+  provenance?: TrendProvenance;
 }
 
 export const GEMINI_MODELS = [
@@ -43,9 +46,15 @@ export interface UserConfiguration {
   encryptedGeminiApiKey?: string; // AES-256 encrypted API key
   preferredModel?: GeminiModel; // Selected AI model
   preferredCategories?: IdeaCategory[];
+  preferredSource?: TrendSourceKind;
   generationCount: number;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
+  xTwitterConfig?: {
+    hasToken: boolean;
+    defaultQuery?: string;
+  };
+  encryptedXBearerToken?: string; // AES-256 encrypted X bearer token
 }
 
 export interface GenerationRequest {
@@ -65,6 +74,11 @@ export interface IdeaGenerationRequest {
   userApiKey?: string;
   preferredCategory?: IdeaCategory;
   modelName?: GeminiModel;
+  trendContext?: {
+    content: string;
+    source: string;
+    author?: string;
+  };
 }
 
 export interface IdeaGenerationResponse {

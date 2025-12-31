@@ -1,0 +1,190 @@
+openapi: 3.1.0
+info:
+  title: Idea Printer Trend Ingestion API
+  description: API endpoints for ingesting and normalizing trend posts from multiple sources.
+  version: 1.0.0
+
+servers:
+  - url: https://idea-printer.vercel.app/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Local development server
+
+paths:
+  /trends/ingest:
+    post:
+      summary: Start a trend ingestion job (async)
+      description: |
+        Starts an asynchronous ingestion job for the selected trend source.
+        Returns a jobId that can be polled for status and results.
+      operationId: startTrendIngestion
+      tags:
+        - Trends
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrendIngestRequest'
+      responses:
+        '202':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendIngestStartResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized (credentialed source missing/invalid)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /trends/ingest/{jobId}:
+    get:
+      summary: Get ingestion job status and results
+      description: |
+        Polls an ingestion job. When completed, results include the normalized trend posts.
+      operationId: getTrendIngestionStatus
+      tags:
+        - Trends
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendIngestionStatusResponse'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    TrendSourceKind:
+      type: string
+      description: Kind of trend source provider
+      enum: [hackernews, rss_bundle, x_twitter]
+
+    TrendIngestRequest:
+      type: object
+      required: [source]
+      properties:
+        source:
+          $ref: '#/components/schemas/TrendSourceKind'
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+          description: Maximum number of posts to return (best-effort)
+        xBearerToken:
+          type: string
+          description: Required when source is x_twitter
+        xQuery:
+          type: string
+          description: Query string used for X/Twitter ingestion
+
+    TrendIngestStartResponse:
+      type: object
+      required: [jobId]
+      properties:
+        jobId:
+          type: string
+        statusUrl:
+          type: string
+          description: Relative URL to poll job status
+          example: /api/trends/ingest/ingestion-123
+
+    IngestionStatus:
+      type: string
+      enum: [pending, running, completed, failed]
+
+    TrendPost:
+      type: object
+      required: [id, platform, excerpt]
+      properties:
+        id:
+          type: string
+        platform:
+          type: string
+          description: Normalized platform string (e.g., hackernews, rss, x)
+        externalId:
+          type: string
+        author:
+          type: string
+          nullable: true
+        excerpt:
+          type: string
+          maxLength: 280
+        postedAt:
+          type: string
+          nullable: true
+          description: ISO timestamp (best-effort)
+        sourceUrl:
+          type: string
+          nullable: true
+        canonicalUrl:
+          type: string
+          nullable: true
+        sourceKind:
+          $ref: '#/components/schemas/TrendSourceKind'
+
+    TrendIngestionStatusResponse:
+      type: object
+      required: [jobId, source, status, startedAt, ingestedCount, skippedCount]
+      properties:
+        jobId:
+          type: string
+        source:
+          $ref: '#/components/schemas/TrendSourceKind'
+        status:
+          $ref: '#/components/schemas/IngestionStatus'
+        startedAt:
+          type: string
+        completedAt:
+          type: string
+          nullable: true
+        ingestedCount:
+          type: integer
+        skippedCount:
+          type: integer
+        error:
+          type: string
+          nullable: true
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrendPost'
+          description: Present when status is completed
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          nullable: true

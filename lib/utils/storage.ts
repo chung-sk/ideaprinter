@@ -4,6 +4,7 @@
  */
 
 import type { GeneratedIdea, UserConfiguration, GenerationRequest } from '@/lib/types/idea';
+import type { IngestionRun, TrendPost } from '@/lib/types/trends';
 
 const STORAGE_KEYS = {
   API_KEY: 'ideaprinter_api_key',
@@ -12,6 +13,9 @@ const STORAGE_KEYS = {
   GENERATED_IDEAS: 'ideaPrinter_generatedIdeas',
   USER_CONFIG: 'ideaPrinter_userConfig',
   CURRENT_REQUESTS: 'ideaPrinter_currentRequests',
+  TREND_POSTS: 'ideaPrinter_trendPosts',
+  INGESTION_RUNS: 'ideaPrinter_ingestionRuns',
+  TREND_SOURCES: 'ideaPrinter_trendSources',
 } as const;
 
 export type StorageKey = keyof typeof STORAGE_KEYS;
@@ -589,6 +593,84 @@ export function deleteIdeaPermanently(ideaId: string): boolean {
     return true;
   } catch (error) {
     console.error('Error permanently deleting idea:', error);
+    return false;
+  }
+}
+
+// ============================================================================
+// Trends: Posts + Ingestion Runs
+// ============================================================================
+
+export function getTrendPosts(): TrendPost[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.TREND_POSTS);
+    if (!data) return [];
+    const posts = JSON.parse(data) as TrendPost[];
+    
+    // Filter out any blocked posts (safety check)
+    return Array.isArray(posts) ? posts.filter(p => !p.blocked) : [];
+  } catch (error) {
+    console.error('Error reading trend posts:', error);
+    return [];
+  }
+}
+
+export function saveTrendPosts(posts: TrendPost[]): boolean {
+  try {
+    // Never persist blocked posts
+    const safePosts = posts.filter(p => !p.blocked);
+    localStorage.setItem(STORAGE_KEYS.TREND_POSTS, JSON.stringify(safePosts));
+    return true;
+  } catch (error) {
+    console.error('Error saving trend posts:', error);
+    return false;
+  }
+}
+
+export function getIngestionRuns(): IngestionRun[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.INGESTION_RUNS);
+    if (!data) return [];
+    const runs = JSON.parse(data) as IngestionRun[];
+    return Array.isArray(runs) ? runs : [];
+  } catch (error) {
+    console.error('Error reading ingestion runs:', error);
+    return [];
+  }
+}
+
+export function saveIngestionRuns(runs: IngestionRun[]): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEYS.INGESTION_RUNS, JSON.stringify(runs));
+    return true;
+  } catch (error) {
+    console.error('Error saving ingestion runs:', error);
+    return false;
+  }
+}
+
+export function getTrendSources(): Array<{ kind: string; displayName: string; lastFetchedAt: Date }> {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.TREND_SOURCES);
+    if (!data) return [];
+    const sources = JSON.parse(data);
+    
+    // Convert lastFetchedAt back to Date objects
+    return Array.isArray(sources) 
+      ? sources.map(s => ({ ...s, lastFetchedAt: new Date(s.lastFetchedAt) }))
+      : [];
+  } catch (error) {
+    console.error('Error reading trend sources:', error);
+    return [];
+  }
+}
+
+export function saveTrendSources(sources: Array<{ kind: string; displayName: string; lastFetchedAt: Date }>): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEYS.TREND_SOURCES, JSON.stringify(sources));
+    return true;
+  } catch (error) {
+    console.error('Error saving trend sources:', error);
     return false;
   }
 }

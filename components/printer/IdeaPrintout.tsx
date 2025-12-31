@@ -4,7 +4,7 @@ import { GeneratedIdea } from '@/lib/types/idea';
 import { motion } from 'framer-motion';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useEffect, useState } from 'react';
-import { Copy, Download, Check } from 'lucide-react';
+import { Copy, Download, Check, ExternalLink } from 'lucide-react';
 import { typewriterVariants, typewriterCharVariants } from './animations';
 
 interface IdeaPrintoutProps {
@@ -166,6 +166,22 @@ Share: ${shareUrl}
           </span>
         </div>
       </div>
+
+      {/* Provenance Section */}
+      {idea.provenance && (
+        <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded text-xs font-mono">
+          <p className="text-blue-500 uppercase mb-1 font-bold">INSPIRED BY TREND:</p>
+          <p className="font-bold text-gray-700 mb-1 line-clamp-2">{idea.provenance.excerpt}</p>
+          <div className="flex justify-between text-gray-500 mt-2">
+             <span>{idea.provenance.sourceKind === 'hackernews' ? 'Hacker News' : idea.provenance.sourceKind === 'rss_bundle' ? 'Tech News' : idea.provenance.sourceKind}</span>
+             {idea.provenance.sourceUrl && (
+               <a href={idea.provenance.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-600 flex items-center gap-1">
+                 SOURCE <ExternalLink className="w-3 h-3" />
+               </a>
+             )}
+          </div>
+        </div>
+      )}
 
       {/* Concept Section */}
       <div className="mb-6">

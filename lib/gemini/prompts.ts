@@ -20,9 +20,19 @@ Make sure:
 
 Generate a fresh, innovative idea now.`;
 
-export function createIdeaPrompt(preferredCategory?: string): string {
-  if (preferredCategory) {
-    return `${IDEA_GENERATION_PROMPT}\n\nPreferred category: ${preferredCategory}`;
+export function createIdeaPrompt(
+  preferredCategory?: string, 
+  trendContext?: { content: string; source: string; author?: string }
+): string {
+  let prompt = IDEA_GENERATION_PROMPT;
+
+  if (trendContext) {
+    prompt += `\n\nUse the following trend/news item as inspiration for the problem (The Gap) or solution (The Fix):\n"${trendContext.content}"\nSource: ${trendContext.source}${trendContext.author ? ` by ${trendContext.author}` : ''}`;
   }
-  return IDEA_GENERATION_PROMPT;
+
+  if (preferredCategory) {
+    prompt += `\n\nPreferred category: ${preferredCategory}`;
+  }
+  
+  return prompt;
 }

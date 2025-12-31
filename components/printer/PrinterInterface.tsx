@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { GeneratedIdea, IdeaGenerationResponse, GenerationRequest } from '@/lib/types/idea';
+import { TrendPost, TrendSourceKind } from '@/lib/types/trends';
 import { saveGeneratedIdea, saveGenerationRequest, updateGenerationRequest, getUserConfig, checkIdeaUniqueness } from '@/lib/utils/storage';
 import { decryptApiKey } from '@/lib/utils/encryption';
 import { fetchQuotaInfo, QuotaInfo } from '@/lib/auth/sessionClient';
 import { v4 as uuidv4 } from 'uuid';
 import { motion } from 'framer-motion';
-import { Shuffle, Trash2, Settings, History } from 'lucide-react';
+import { Shuffle, Trash2, Settings, History, Newspaper, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import PaperOutput from './PaperOutput';
 import PrintButton from './PrintButton';
+import TrendInterface from './TrendInterface';
 import ErrorMessage from '../common/ErrorMessage';
 import { printerBodyVariants, prefersReducedMotion } from './animations';
 import { soundManager, playSound } from '@/lib/utils/soundEffects';
@@ -19,6 +21,8 @@ const CATEGORIES = [
   'Productivity', 'Health & Fitness', 'Education', 'Finance', 'Travel', 
   'Social', 'Entertainment', 'Utilities', 'Lifestyle', 'Business'
 ];
+
+type GenerationMode = 'random' | 'trend';
 
 export default function PrinterInterface() {
   const [idea, setIdea] = useState<GeneratedIdea | null>(null);
@@ -29,6 +33,11 @@ export default function PrinterInterface() {
   const [isMobile, setIsMobile] = useState(false);
   const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
   const [userApiKey, setUserApiKey] = useState<string | undefined>();
+  
+  // Trend Mode State
+  const [mode, setMode] = useState<GenerationMode>('random');
+  const [selectedTrendPost, setSelectedTrendPost] = useState<TrendPost | null>(null);
+  const [preferredSource, setPreferredSource] = useState<TrendSourceKind>('hackernews');
 
   useEffect(() => {
     // Check for reduced motion preference
@@ -72,6 +81,11 @@ export default function PrinterInterface() {
 
   const loadUserConfig = async () => {
     const userConfig = getUserConfig();
+    
+    if (userConfig?.preferredSource) {
+      setPreferredSource(userConfig.preferredSource);
+    }
+
     if (userConfig?.encryptedGeminiApiKey) {
       try {
         const decryptedKey = await decryptApiKey(userConfig.encryptedGeminiApiKey);
@@ -162,16 +176,39 @@ export default function PrinterInterface() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
+      interface RequestBody {
+        preferredCategory?: string;
+        userApiKey?: string;
+        modelName?: string;
+        trendContext?: {
+          content: string;
+          source: string;
+          author?: string;
+        };
+      }
+
+      const requestBody: RequestBody = {
+        preferredCategory: selectedCategory, // Pass selected category if any
+        userApiKey: currentApiKey, // Pass user's API key if available
+        modelName: preferredModel, // Pass preferred model if configured
+      };
+
+      // Add trend context if in trend mode and post is selected
+      if (mode === 'trend' && selectedTrendPost) {
+        requestBody.trendContext = {
+          content: selectedTrendPost.excerpt,
+          source: selectedTrendPost.sourceKind,
+          author: selectedTrendPost.author,
+          url: selectedTrendPost.sourceUrl
+        };
+      }
+
       const response = await fetch('/api/generate-idea', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          preferredCategory: selectedCategory, // Pass selected category if any
-          userApiKey: currentApiKey, // Pass user's API key if available
-          modelName: preferredModel, // Pass preferred model if configured
-        }),
+        body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
 
@@ -200,13 +237,21 @@ export default function PrinterInterface() {
       // Create GeneratedIdea object for localStorage
       const generatedIdea: GeneratedIdea = {
         id: apiResponse.id,
+        uniqueId: uuidv4(), // Generate unique ID for deduplication
         appName: apiResponse.appName,
         category: apiResponse.category,
         concept: apiResponse.concept,
         theGap: apiResponse.theGap,
         theFix: apiResponse.theFix,
         generatedAt: apiResponse.generatedAt,
-        uniqueId: apiResponse.uniqueId,
+        provenance: (mode === 'trend' && selectedTrendPost) ? {
+          sourceKind: selectedTrendPost.sourceKind || 'hackernews',
+          platform: selectedTrendPost.platform,
+          sourceUrl: selectedTrendPost.sourceUrl,
+          author: selectedTrendPost.author,
+          postedAt: selectedTrendPost.postedAt,
+          excerpt: selectedTrendPost.excerpt
+        } : undefined
       };
 
       // Check uniqueness before saving
@@ -328,36 +373,75 @@ export default function PrinterInterface() {
           </div>
         </div>
 
+        {/* Mode Toggle */}
+        <div className="flex justify-center gap-4 mb-6" role="group" aria-label="Generation Mode">
+          <button
+            onClick={() => setMode('random')}
+            aria-pressed={mode === 'random'}
+            className={`px-4 py-2 rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
+              mode === 'random' 
+                ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30' 
+                : 'bg-[#9D1722] text-red-200 hover:bg-[#8a141e]'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 mr-2" aria-hidden="true" />
+            RANDOM
+          </button>
+          <button
+            onClick={() => setMode('trend')}
+            aria-pressed={mode === 'trend'}
+            className={`px-4 py-2 rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
+              mode === 'trend' 
+                ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30' 
+                : 'bg-[#9D1722] text-red-200 hover:bg-[#8a141e]'
+            }`}
+          >
+            <Newspaper className="w-4 h-4 mr-2" aria-hidden="true" />
+            TRENDS
+          </button>
+        </div>
+
         {/* LCD Display Area */}
-        <div className="bg-[#111827] rounded-[20px] p-8 mb-8 min-h-[120px] flex items-center justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden border-b-4 border-[#374151]">
+        <div className={`bg-[#111827] rounded-[20px] p-8 mb-8 flex justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden border-b-4 border-[#374151] transition-all duration-300 ${mode === 'trend' ? 'min-h-[400px] items-start' : 'min-h-[120px] items-center'}`}>
           {/* Scanlines */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 pointer-events-none bg-[length:100%_4px,3px_100%] opacity-20"></div>
           
-          <div className="z-20 text-center w-full">
-            {isLoading && (
-              <p className="text-green-500/80 font-mono text-lg animate-pulse tracking-widest">
-                PRINTING...
-              </p>
-            )}
-            {!isLoading && !idea && !error && (
-              <div className="space-y-2">
-                <p className="text-gray-500 font-mono text-sm tracking-widest uppercase">READY TO PRINT...</p>
-                {selectedCategory && (
-                  <p className="text-green-500 font-mono text-xl tracking-wider animate-pulse">
-                    &gt; {selectedCategory} &lt;
+          <div className="z-20 w-full relative">
+            {mode === 'trend' ? (
+              <TrendInterface 
+                preferredSource={preferredSource}
+                selectedPostId={selectedTrendPost?.id || null}
+                onSelectPost={setSelectedTrendPost}
+                isLoading={isLoading}
+              />
+            ) : (
+              <div className="text-center w-full">
+                {isLoading && (
+                  <p className="text-green-500/80 font-mono text-lg animate-pulse tracking-widest">
+                    PRINTING...
+                  </p>
+                )}
+                {!isLoading && !idea && !error && (
+                  <div className="space-y-2">
+                    <p className="text-gray-500 font-mono text-sm tracking-widest uppercase">READY TO PRINT...</p>
+                    {selectedCategory && (
+                      <p className="text-green-500 font-mono text-xl tracking-wider animate-pulse">
+                        &gt; {selectedCategory} &lt;
+                      </p>
+                    )}
+                  </div>
+                )}
+                {!isLoading && idea && (
+                  <p className="text-green-500 font-mono text-lg tracking-widest">
+                    DONE. ID: {idea.uniqueId}
+                  </p>
+                )}
+                {!isLoading && error && (
+                  <p className="text-red-500 font-mono text-sm tracking-widest">
+                    ERROR: {error.toUpperCase()}
                   </p>
                 )}
               </div>
-            )}
-            {!isLoading && idea && (
-              <p className="text-green-500 font-mono text-lg tracking-widest">
-                DONE. ID: {idea.uniqueId}
-              </p>
-            )}
-            {!isLoading && error && (
-              <p className="text-red-500 font-mono text-sm tracking-widest">
-                ERROR: {error.toUpperCase()}
-              </p>
             )}
           </div>
         </div>
@@ -366,10 +450,10 @@ export default function PrinterInterface() {
         <div className="flex justify-center items-center gap-6 mb-8">
           {/* Shuffle Button */}
           <motion.button
-            whileHover={reducedMotion ? undefined : { scale: 1.05 }}
-            whileTap={reducedMotion ? undefined : { scale: 0.95 }}
+            whileHover={reducedMotion || mode === 'trend' ? undefined : { scale: 1.05 }}
+            whileTap={reducedMotion || mode === 'trend' ? undefined : { scale: 0.95 }}
             onClick={handleShuffle}
-            disabled={isLoading}
+            disabled={isLoading || mode === 'trend'}
             className="w-20 h-20 bg-[#1F2937] rounded-[24px] flex items-center justify-center shadow-[0_4px_0_#000000] active:shadow-none active:translate-y-1 border-t border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Shuffle Category"
           >
@@ -392,7 +476,7 @@ export default function PrinterInterface() {
           <div className="flex-1 max-w-[280px]">
             <PrintButton
               onClick={handleGenerateIdea}
-              disabled={isLoading}
+              disabled={isLoading || (mode === 'trend' && !selectedTrendPost)}
               isLoading={isLoading}
             />
           </div>

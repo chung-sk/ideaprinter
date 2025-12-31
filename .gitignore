@@ -84,3 +84,6 @@ logs/
 DEPLOYMENT_GUIDE.md
 CLAUDE.md
 /tests
+.tmp_prereq.json
+test-results/.last-run.json
+playwright-report/index.html
