@@ -26,8 +26,11 @@ export function capExcerpt(text: string): string {
 export function stripHtml(html: string): string {
   if (!html) return ''
   
+  // Ensure html is a string (guard against non-string values)
+  const htmlStr = typeof html === 'string' ? html : String(html)
+  
   // Remove HTML tags
-  let text = html.replace(/<[^>]*>/g, ' ')
+  let text = htmlStr.replace(/<[^>]*>/g, ' ')
   
   // Decode common HTML entities
   const entities: Record<string, string> = {

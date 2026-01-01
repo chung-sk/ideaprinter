@@ -7,7 +7,7 @@ import type { TrendSourceProvider, RawTrendPost, FetchOptions } from './types'
 
 const HN_API_BASE = 'https://hacker-news.firebaseio.com/v0'
 const DEFAULT_LIMIT = 30
-const REQUEST_TIMEOUT = 5000 // 5 seconds
+const REQUEST_TIMEOUT = 15000 // 15 seconds (increased for production/cold starts)
 
 interface HNItem {
   id: number

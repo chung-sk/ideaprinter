@@ -119,9 +119,13 @@ async function fetchFeed(feedUrl: string): Promise<RawTrendPost[]> {
           link = undefined
         }
 
+        // Ensure content is always a string (XML parser may return objects)
+        const content = item.description || item.title
+        const contentStr = typeof content === 'string' ? content : String(content || '')
+        
         return {
           externalId: link ? `rss-${Buffer.from(link).toString('base64').substring(0, 20)}` : undefined,
-          content: item.description || item.title!,
+          content: contentStr,
           author: item['dc:creator'] || item.author || null,
           postedAt: item.pubDate || null,
           sourceUrl: link,
