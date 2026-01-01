@@ -1,10 +1,10 @@
 /**
  * Global quota tracking for shared/default API key.
- * 
+ *
  * This module tracks a single global counter for all users who are using
  * the app's default Gemini API key. Users who provide their own API key
  * bypass quota checks entirely.
- * 
+ *
  * Uses globalThis to persist state across HMR (Hot Module Replacement) in development.
  */
 

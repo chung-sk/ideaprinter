@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react';
 import { GeneratedIdea, IdeaGenerationResponse, GenerationRequest } from '@/lib/types/idea';
 import { TrendPost, TrendSourceKind } from '@/lib/types/trends';
-import { saveGeneratedIdea, saveGenerationRequest, updateGenerationRequest, getUserConfig, checkIdeaUniqueness } from '@/lib/utils/storage';
+import {
+  saveGeneratedIdea,
+  saveGenerationRequest,
+  updateGenerationRequest,
+  getUserConfig,
+  checkIdeaUniqueness,
+} from '@/lib/utils/storage';
 import { decryptApiKey } from '@/lib/utils/encryption';
 import { fetchQuotaInfo, QuotaInfo } from '@/lib/auth/sessionClient';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,8 +24,16 @@ import { printerBodyVariants, prefersReducedMotion } from './animations';
 import { soundManager, playSound } from '@/lib/utils/soundEffects';
 
 const CATEGORIES = [
-  'Productivity', 'Health & Fitness', 'Education', 'Finance', 'Travel', 
-  'Social', 'Entertainment', 'Utilities', 'Lifestyle', 'Business'
+  'Productivity',
+  'Health & Fitness',
+  'Education',
+  'Finance',
+  'Travel',
+  'Social',
+  'Entertainment',
+  'Utilities',
+  'Lifestyle',
+  'Business',
 ];
 
 type GenerationMode = 'random' | 'trend';
@@ -33,7 +47,7 @@ export default function PrinterInterface() {
   const [isMobile, setIsMobile] = useState(false);
   const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
   const [userApiKey, setUserApiKey] = useState<string | undefined>();
-  
+
   // Trend Mode State
   const [mode, setMode] = useState<GenerationMode>('random');
   const [selectedTrendPost, setSelectedTrendPost] = useState<TrendPost | null>(null);
@@ -42,34 +56,34 @@ export default function PrinterInterface() {
   useEffect(() => {
     // Check for reduced motion preference
     setReducedMotion(prefersReducedMotion());
-    
+
     // Check for mobile device
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     // Listen for reduced motion preference changes
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleChange = () => setReducedMotion(mediaQuery.matches);
-    
+
     mediaQuery.addEventListener('change', handleChange);
-    
+
     // Resume audio context on first user interaction (browser autoplay policy)
     const resumeAudio = () => {
       soundManager.resume();
       document.removeEventListener('click', resumeAudio);
       document.removeEventListener('touchstart', resumeAudio);
     };
-    
+
     document.addEventListener('click', resumeAudio);
     document.addEventListener('touchstart', resumeAudio);
 
     // Load user API key and fetch quota info on mount
     loadUserConfig();
-    
+
     return () => {
       window.removeEventListener('resize', checkMobile);
       mediaQuery.removeEventListener('change', handleChange);
@@ -81,7 +95,7 @@ export default function PrinterInterface() {
 
   const loadUserConfig = async () => {
     const userConfig = getUserConfig();
-    
+
     if (userConfig?.preferredSource) {
       setPreferredSource(userConfig.preferredSource);
     }
@@ -112,7 +126,7 @@ export default function PrinterInterface() {
     setSelectedCategory(randomCategory);
     setIdea(null);
     setError(null);
-    
+
     // Play shuffle sound
     playSound('paperFeed', 0.4);
   };
@@ -138,7 +152,7 @@ export default function PrinterInterface() {
     let currentApiKey: string | undefined = userApiKey;
     let preferredModel: string | undefined;
     const userConfig = getUserConfig();
-    
+
     // Only fetch API key if not already loaded
     if (!currentApiKey && userConfig?.encryptedGeminiApiKey) {
       try {
@@ -148,7 +162,7 @@ export default function PrinterInterface() {
         // Continue with default key
       }
     }
-    
+
     if (userConfig?.preferredModel) {
       preferredModel = userConfig.preferredModel;
     }
@@ -198,7 +212,7 @@ export default function PrinterInterface() {
         requestBody.trendContext = {
           content: selectedTrendPost.excerpt,
           source: selectedTrendPost.sourceKind || 'unknown',
-          author: selectedTrendPost.author ?? undefined
+          author: selectedTrendPost.author ?? undefined,
         };
       }
 
@@ -215,24 +229,26 @@ export default function PrinterInterface() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        
+
         // Handle rate limit errors specially
         if (response.status === 429) {
           const retrySeconds = errorData.retryAfter || 60;
           const retryMinutes = Math.ceil(retrySeconds / 60);
-          const timeUnit = retrySeconds < 120 ? `${retrySeconds} seconds` : `${retryMinutes} minutes`;
-          
+          const timeUnit =
+            retrySeconds < 120 ? `${retrySeconds} seconds` : `${retryMinutes} minutes`;
+
           throw new Error(
-            errorData.error || errorData.message || 
-            `Rate limit exceeded. Please try again in ${timeUnit}.`
+            errorData.error ||
+              errorData.message ||
+              `Rate limit exceeded. Please try again in ${timeUnit}.`
           );
         }
-        
+
         throw new Error(errorData.error || 'Failed to generate idea');
       }
 
       const apiResponse: IdeaGenerationResponse = await response.json();
-      
+
       // Create GeneratedIdea object for localStorage
       const generatedIdea: GeneratedIdea = {
         id: apiResponse.id,
@@ -243,14 +259,17 @@ export default function PrinterInterface() {
         theGap: apiResponse.theGap,
         theFix: apiResponse.theFix,
         generatedAt: apiResponse.generatedAt,
-        provenance: (mode === 'trend' && selectedTrendPost) ? {
-          sourceKind: selectedTrendPost.sourceKind || 'hackernews',
-          platform: selectedTrendPost.platform,
-          sourceUrl: selectedTrendPost.sourceUrl,
-          author: selectedTrendPost.author,
-          postedAt: selectedTrendPost.postedAt,
-          excerpt: selectedTrendPost.excerpt
-        } : undefined
+        provenance:
+          mode === 'trend' && selectedTrendPost
+            ? {
+                sourceKind: selectedTrendPost.sourceKind || 'hackernews',
+                platform: selectedTrendPost.platform,
+                sourceUrl: selectedTrendPost.sourceUrl,
+                author: selectedTrendPost.author,
+                postedAt: selectedTrendPost.postedAt,
+                excerpt: selectedTrendPost.excerpt,
+              }
+            : undefined,
       };
 
       // Check uniqueness before saving
@@ -262,7 +281,9 @@ export default function PrinterInterface() {
       if (!uniquenessCheck.isUnique) {
         console.warn('Similar idea already exists:', uniquenessCheck.similarIdea);
         // Still save it, but notify the user
-        setError(`Note: A similar idea "${uniquenessCheck.similarIdea?.appName}" already exists in your history.`);
+        setError(
+          `Note: A similar idea "${uniquenessCheck.similarIdea?.appName}" already exists in your history.`
+        );
       }
 
       // Save to localStorage
@@ -281,15 +302,15 @@ export default function PrinterInterface() {
       });
 
       setIdea(generatedIdea);
-      
+
       // Reload quota info to get updated count
       loadQuotaInfo(currentApiKey);
-      
+
       // Play completion sound
       playSound('complete', 0.6);
     } catch (err) {
       let errorMessage = 'An unexpected error occurred';
-      
+
       if (err instanceof Error) {
         if (err.name === 'AbortError') {
           errorMessage = 'Request timed out after 60 seconds. Please try again.';
@@ -297,7 +318,7 @@ export default function PrinterInterface() {
           errorMessage = err.message;
         }
       }
-      
+
       // Update generation request to failed
       updateGenerationRequest(requestId, {
         status: 'failed',
@@ -327,7 +348,9 @@ export default function PrinterInterface() {
               <div className="flex justify-between">
                 <span>Daily remaining:</span>
                 <span className="font-semibold">
-                  {quotaInfo.remainingDaily !== undefined ? `${quotaInfo.remainingDaily}/30` : '...'}
+                  {quotaInfo.remainingDaily !== undefined
+                    ? `${quotaInfo.remainingDaily}/30`
+                    : '...'}
                 </span>
               </div>
             </div>
@@ -358,17 +381,29 @@ export default function PrinterInterface() {
       </div>
 
       {/* Printer Body */}
-      <motion.div 
+      <motion.div
         className="bg-[#E63946] rounded-[40px] p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.3)] max-w-4xl w-full border-b-[12px] border-r-[12px] border-[#9D1722] relative my-auto"
         variants={reducedMotion || isMobile ? undefined : printerBodyVariants}
-        animate={reducedMotion || isMobile ? undefined : (isLoading ? "printing" : idea ? "complete" : "idle")}
+        animate={
+          reducedMotion || isMobile
+            ? undefined
+            : isLoading
+              ? 'printing'
+              : idea
+                ? 'complete'
+                : 'idle'
+        }
         transition={reducedMotion ? { duration: 0.01 } : undefined}
       >
         {/* Printer Brand/Header */}
         <div className="flex justify-center items-center mb-8">
           <div className="bg-[#1F2937] px-6 py-2 rounded-full shadow-lg flex items-center gap-2 border border-[#374151]">
-            <div className={`w-3 h-3 rounded-full ${isLoading ? 'bg-green-400 animate-pulse' : 'bg-green-500'}`}></div>
-            <span className="text-gray-200 font-mono text-sm tracking-widest font-bold">MEMO-RITE</span>
+            <div
+              className={`w-3 h-3 rounded-full ${isLoading ? 'bg-green-400 animate-pulse' : 'bg-green-500'}`}
+            ></div>
+            <span className="text-gray-200 font-mono text-sm tracking-widest font-bold">
+              MEMO-RITE
+            </span>
           </div>
         </div>
 
@@ -378,8 +413,8 @@ export default function PrinterInterface() {
             onClick={() => setMode('random')}
             aria-pressed={mode === 'random'}
             className={`px-4 py-2 rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
-              mode === 'random' 
-                ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30' 
+              mode === 'random'
+                ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30'
                 : 'bg-[#9D1722] text-red-200 hover:bg-[#8a141e]'
             }`}
           >
@@ -390,8 +425,8 @@ export default function PrinterInterface() {
             onClick={() => setMode('trend')}
             aria-pressed={mode === 'trend'}
             className={`px-4 py-2 rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
-              mode === 'trend' 
-                ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30' 
+              mode === 'trend'
+                ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30'
                 : 'bg-[#9D1722] text-red-200 hover:bg-[#8a141e]'
             }`}
           >
@@ -401,13 +436,15 @@ export default function PrinterInterface() {
         </div>
 
         {/* LCD Display Area */}
-        <div className={`bg-[#111827] rounded-[20px] p-8 mb-8 flex justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden border-b-4 border-[#374151] transition-all duration-300 ${mode === 'trend' ? 'min-h-[400px] items-start' : 'min-h-[120px] items-center'}`}>
+        <div
+          className={`bg-[#111827] rounded-[20px] p-8 mb-8 flex justify-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden border-b-4 border-[#374151] transition-all duration-300 ${mode === 'trend' ? 'min-h-[400px] items-start' : 'min-h-[120px] items-center'}`}
+        >
           {/* Scanlines */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 pointer-events-none bg-[length:100%_4px,3px_100%] opacity-20"></div>
-          
+
           <div className="z-20 w-full relative">
             {mode === 'trend' ? (
-              <TrendInterface 
+              <TrendInterface
                 preferredSource={preferredSource}
                 selectedPostId={selectedTrendPost?.id || null}
                 onSelectPost={setSelectedTrendPost}
@@ -422,7 +459,9 @@ export default function PrinterInterface() {
                 )}
                 {!isLoading && !idea && !error && (
                   <div className="space-y-2">
-                    <p className="text-gray-500 font-mono text-sm tracking-widest uppercase">READY TO PRINT...</p>
+                    <p className="text-gray-500 font-mono text-sm tracking-widest uppercase">
+                      READY TO PRINT...
+                    </p>
                     {selectedCategory && (
                       <p className="text-green-500 font-mono text-xl tracking-wider animate-pulse">
                         &gt; {selectedCategory} &lt;
@@ -485,7 +524,7 @@ export default function PrinterInterface() {
         <div className="relative z-0">
           {/* Paper Slot Shadow */}
           <div className="absolute top-0 left-4 right-4 h-2 bg-black/20 rounded-full blur-sm z-20"></div>
-          
+
           <div className="relative z-10 min-h-[100px]">
             {error && !isLoading && (
               <div className="bg-white p-4 rounded shadow-lg max-w-md mx-auto mt-4 transform rotate-1">
@@ -493,7 +532,12 @@ export default function PrinterInterface() {
               </div>
             )}
 
-            <PaperOutput idea={idea} isPrinting={isLoading} reducedMotion={reducedMotion} isMobile={isMobile} />
+            <PaperOutput
+              idea={idea}
+              isPrinting={isLoading}
+              reducedMotion={reducedMotion}
+              isMobile={isMobile}
+            />
           </div>
         </div>
       </motion.div>

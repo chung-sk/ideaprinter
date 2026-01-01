@@ -8,6 +8,7 @@
 ## Clarifications
 
 ### Session 2025-12-23
+
 - Q: Should the printer body shake during printing? → A: No, the user prefers no shaking effect. The printing animation should be limited to paper feeding and text revealing.
 - Q: What color scheme should the printer use? → A: Red & Dark Grey, adopting the bold red body and dark accents from the provided reference image.
 - Q: Should the interface include the Shuffle and Trash buttons from the reference? → A: Yes, implement Shuffle (Generate New/Random), Trash (Clear/Reset), and Print (Generate) buttons to match the reference.
@@ -16,14 +17,16 @@
 - Q: What is the specific behavior of the Shuffle button? → A: The Shuffle button randomizes the input configuration (e.g., selects a random category/domain displayed on the LCD), while the Print button executes the generation based on those settings.
 
 ### Session 2025-12-24
+
 - Q: Are printer sound effects (paper-feed.mp3, printing.mp3, complete.mp3) required for the application? → A: No, sound effects are not required for this printer project.
 
 **Implementation Impact**:
+
 - Removed: Sound file preloading, Web Audio API synthesis
 - Simplified: soundEffects.ts to no-op stub (maintains interface compatibility)
 - Result: No 404 errors for sound files, no audio playback
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Generate Market-Driven App Idea (Priority: P1)
 
@@ -82,7 +85,7 @@ A user can provide their own credentials or configuration to customize how ideas
 - What happens if generation takes longer than expected (e.g., network latency)?
 - How does the system respond if the generated content is inappropriate or incomplete?
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -124,7 +127,7 @@ A user can provide their own credentials or configuration to customize how ideas
   - Error message (if failed)
   - Reference to generated idea (if successful)
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -144,6 +147,7 @@ A user can provide their own credentials or configuration to customize how ideas
 - Q: Should the application use a database (PostgreSQL) or client-side cache (localStorage) for data persistence? → A: Client-side cache (localStorage) to avoid database hosting costs and simplify deployment. This means data is device-specific, no cross-device sync, and history is cleared when browser data is cleared.
 
 **Implementation Impact**:
+
 - Removed: Prisma, PostgreSQL, all database dependencies
 - Added: localStorage/sessionStorage helper utilities
 - Added: Web Crypto API encryption for user-provided API keys

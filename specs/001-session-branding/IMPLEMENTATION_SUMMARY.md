@@ -9,12 +9,14 @@
 The original per-session quota implementation has been replaced with a global quota system based on clarifications added to the spec:
 
 ### Original Design (Deprecated)
+
 - **Quota Scope**: Per-session (each browser session has its own quota)
 - **Tracking**: Signed HMAC cookies with sessionId, dailyCount, minuteCount
 - **Limits**: 30/day + 5/minute per session
 - **Files**: `lib/auth/sessionToken.ts`, cookies managed in all API routes
 
 ### New Design (Current)
+
 - **Quota Scope**: Global (single shared counter for all users)
 - **Tracking**: In-memory global state (module-level variable)
 - **Limits**: 30/day (no per-minute limit)
@@ -33,7 +35,7 @@ The original per-session quota implementation has been replaced with a global qu
    - `getGlobalQuotaStatus()`: Read-only quota status getter
 
 2. **API Route Updates**:
-   - `/api/generate-idea`: 
+   - `/api/generate-idea`:
      - Check `isUsingSharedKey()` before enforcing quota
      - Call `checkGlobalQuota()` only for shared key requests
      - Call `incrementGlobalQuota()` only on success with shared key
@@ -76,6 +78,7 @@ The original per-session quota implementation has been replaced with a global qu
 ### Deprecated Files
 
 The following files are no longer used but have been retained for reference:
+
 - `lib/auth/sessionToken.ts` (per-session quota logic)
 - `tests/unit/lib/auth/sessionToken.test.ts` (8 passing tests for old system)
 
@@ -113,10 +116,12 @@ These can be removed in a future cleanup pass.
 ## Files Modified
 
 **Created**:
+
 - `lib/auth/globalQuota.ts`
 - `tests/unit/lib/auth/globalQuota.test.ts`
 
 **Modified**:
+
 - `app/api/generate-idea/route.ts`
 - `app/api/session/route.ts`
 - `lib/auth/sessionClient.ts`
@@ -130,6 +135,7 @@ These can be removed in a future cleanup pass.
 - `specs/001-session-branding/research.md`
 
 **Deprecated** (not deleted):
+
 - `lib/auth/sessionToken.ts`
 - `tests/unit/lib/auth/sessionToken.test.ts`
 

@@ -2,15 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, Search, Filter, Trash2, Eye, Download, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import {
+  History,
+  Search,
+  Filter,
+  Trash2,
+  Eye,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+} from 'lucide-react';
 import Link from 'next/link';
-import type { GeneratedIdea, IdeaCategory } from '@/lib/types/idea';
+import type { GeneratedIdea, IdeaCategory, Idea } from '@/lib/types/idea';
 import {
   getPaginatedIdeas,
   searchIdeas,
   deleteGeneratedIdea,
   getIdeaStatistics,
 } from '@/lib/utils/storage';
+import { buildShareUrl } from '@/lib/share/shareUrl';
 
 const CATEGORIES: IdeaCategory[] = [
   'Technology',
@@ -48,9 +59,9 @@ export default function IdeaHistory() {
       if (searchQuery.trim()) {
         const searchResults = searchIdeas(searchQuery);
         const filtered = selectedCategory
-          ? searchResults.filter(idea => idea.category === selectedCategory)
+          ? searchResults.filter((idea) => idea.category === selectedCategory)
           : searchResults;
-        
+
         // Manual pagination for search results
         const startIndex = (page - 1) * limit;
         const endIndex = startIndex + limit;
@@ -97,9 +108,25 @@ export default function IdeaHistory() {
 
   // Handle view
   const handleView = (idea: GeneratedIdea) => {
-    // Open idea in new window or modal
-    const url = `/share?ideaId=${idea.id}`;
-    window.open(url, '_blank');
+    try {
+      // Convert to simpler Idea format for sharing
+      const ideaForSharing: Idea = {
+        id: idea.uniqueId,
+        name: idea.appName,
+        category: idea.category,
+        generatedAt: idea.generatedAt,
+        concept: idea.concept,
+        gap: idea.theGap,
+        fix: idea.theFix,
+        provenance: idea.provenance,
+      };
+
+      const shareUrl = buildShareUrl(ideaForSharing);
+      window.open(shareUrl, '_blank');
+    } catch (error) {
+      console.error('Failed to open idea:', error);
+      alert('Unable to open this idea. Please try again.');
+    }
   };
 
   // Handle export
@@ -129,7 +156,7 @@ export default function IdeaHistory() {
     <div className="min-h-screen bg-[#F8F9FA] py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Back to Printer Link */}
-        <Link 
+        <Link
           href="/"
           className="inline-flex items-center gap-2 text-gray-600 hover:text-[#E63946] mb-6 transition-colors"
         >
@@ -143,11 +170,15 @@ export default function IdeaHistory() {
             <History className="w-8 h-8 text-[#E63946]" />
             <h1 className="text-4xl font-bold text-[#1F2937]">Idea History</h1>
           </div>
-          
+
           {stats && (
             <div className="flex gap-4 text-sm text-gray-600">
-              <span>Total Ideas: <strong>{stats.total}</strong></span>
-              <span>Categories: <strong>{Object.keys(stats.byCategory).length}</strong></span>
+              <span>
+                Total Ideas: <strong>{stats.total}</strong>
+              </span>
+              <span>
+                Categories: <strong>{Object.keys(stats.byCategory).length}</strong>
+              </span>
             </div>
           )}
         </div>
@@ -198,13 +229,13 @@ export default function IdeaHistory() {
 
             {/* Sort */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sort By
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
               <div className="flex gap-2">
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'generatedAt' | 'appName' | 'category')}
+                  onChange={(e) =>
+                    setSortBy(e.target.value as 'generatedAt' | 'appName' | 'category')
+                  }
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#E63946] focus:border-transparent"
                 >
                   <option value="generatedAt">Date</option>
@@ -224,10 +255,7 @@ export default function IdeaHistory() {
 
           {/* Reset Button */}
           <div className="mt-4 flex justify-end">
-            <button
-              onClick={resetFilters}
-              className="text-sm text-[#E63946] hover:underline"
-            >
+            <button onClick={resetFilters} className="text-sm text-[#E63946] hover:underline">
               Reset Filters
             </button>
           </div>
@@ -243,7 +271,9 @@ export default function IdeaHistory() {
             <History className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-xl text-gray-500">No ideas found</p>
             <p className="text-sm text-gray-400 mt-2">
-              {searchQuery || selectedCategory ? 'Try adjusting your filters' : 'Start generating ideas!'}
+              {searchQuery || selectedCategory
+                ? 'Try adjusting your filters'
+                : 'Start generating ideas!'}
             </p>
           </div>
         ) : (
@@ -268,18 +298,17 @@ export default function IdeaHistory() {
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-[#1F2937] mb-2 truncate" title={idea.appName}>
+                    <h3
+                      className="text-xl font-bold text-[#1F2937] mb-2 truncate"
+                      title={idea.appName}
+                    >
                       {idea.appName}
                     </h3>
 
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                      {idea.concept}
-                    </p>
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-3">{idea.concept}</p>
 
                     <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                      <span className="text-xs font-mono text-gray-400">
-                        {idea.uniqueId}
-                      </span>
+                      <span className="text-xs font-mono text-gray-400">{idea.uniqueId}</span>
 
                       <div className="flex gap-2">
                         <button
@@ -314,7 +343,7 @@ export default function IdeaHistory() {
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-4">
                 <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                   className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                 >
@@ -326,7 +355,7 @@ export default function IdeaHistory() {
                 </span>
 
                 <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   className="p-2 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                 >

@@ -11,7 +11,7 @@ export async function fetchQuotaInfo(userApiKey?: string): Promise<QuotaInfo | n
     if (userApiKey) {
       headers['x-api-key'] = userApiKey;
     }
-    
+
     const res = await fetch('/api/session', { headers });
     if (!res.ok) return null;
     return await res.json();
@@ -20,4 +20,3 @@ export async function fetchQuotaInfo(userApiKey?: string): Promise<QuotaInfo | n
     return null;
   }
 }
-

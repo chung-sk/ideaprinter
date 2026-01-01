@@ -16,9 +16,9 @@ export default function PrintButton({ onClick, disabled, isLoading }: PrintButto
       disabled={disabled || isLoading}
       variants={buttonVariants}
       initial="idle"
-      whileHover={!disabled && !isLoading ? "hover" : undefined}
-      whileTap={!disabled && !isLoading ? "pressed" : undefined}
-      animate={disabled || isLoading ? "disabled" : "idle"}
+      whileHover={!disabled && !isLoading ? 'hover' : undefined}
+      whileTap={!disabled && !isLoading ? 'pressed' : undefined}
+      animate={disabled || isLoading ? 'disabled' : 'idle'}
       className="
         px-8 py-4 
         bg-[#e65100] 

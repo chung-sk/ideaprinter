@@ -57,7 +57,7 @@ export class GeminiClient {
 
 export function createGeminiClient(apiKey?: string, model?: GeminiModel): GeminiClient {
   const key = apiKey || process.env.GEMINI_API_KEY;
-  
+
   if (!key) {
     throw new Error('Gemini API key is required');
   }

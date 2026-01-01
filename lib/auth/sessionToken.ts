@@ -30,11 +30,11 @@ export function verifySessionToken(token: string): SessionPayload | null {
   if (!data || !signature) return null;
 
   const expectedSignature = createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
-  
+
   // Constant time comparison
   const sigBuffer = Buffer.from(signature);
   const expectedBuffer = Buffer.from(expectedSignature);
-  
+
   if (sigBuffer.length !== expectedBuffer.length || !timingSafeEqual(sigBuffer, expectedBuffer)) {
     return null;
   }
@@ -48,20 +48,21 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
 export function checkQuota(payload: SessionPayload, now = Date.now()) {
   let { dailyCount, dailyResetAt, minuteCount, minuteResetAt } = payload;
-  
+
   // Reset windows if expired
   if (now >= dailyResetAt) {
     dailyCount = 0;
     dailyResetAt = now + 24 * 60 * 60 * 1000;
   }
-  
+
   if (now >= minuteResetAt) {
     minuteCount = 0;
     minuteResetAt = now + 60 * 1000;
   }
 
-  const isBlocked = dailyCount >= QUOTA_LIMITS.dailyLimit || minuteCount >= QUOTA_LIMITS.minuteLimit;
-  
+  const isBlocked =
+    dailyCount >= QUOTA_LIMITS.dailyLimit || minuteCount >= QUOTA_LIMITS.minuteLimit;
+
   return {
     updatedPayload: {
       ...payload,

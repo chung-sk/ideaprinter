@@ -15,7 +15,11 @@ function getClientIdentifier(request: NextRequest): string {
   return ip;
 }
 
-function checkRateLimit(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
+function checkRateLimit(identifier: string): {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+} {
   const now = Date.now();
   const record = rateLimitStore.get(identifier);
 
@@ -115,8 +119,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/api/:path*',
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/api/:path*', '/((?!_next/static|_next/image|favicon.ico).*)'],
 };

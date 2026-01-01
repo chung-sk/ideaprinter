@@ -22,6 +22,7 @@ The app features a delightful retro printer aesthetic with animations, sound eff
 ## ✨ Features
 
 ### Core Features
+
 - **AI-Powered Generation**: Uses Gemini 2.0 Flash for fast (<5s) idea generation
 - **Retro Printer Interface**: Memo-Rite style design with paper feed animations
 - **Custom API Keys**: Bring your own Gemini API key for unlimited generations
@@ -31,6 +32,7 @@ The app features a delightful retro printer aesthetic with animations, sound eff
 - **Encrypted Storage**: API keys stored securely using AES-256-GCM
 
 ### User Experience
+
 - **Sound Effects**: Optional printer sounds (paper feed, printing, complete)
 - **Responsive Design**: Works on mobile, tablet, and desktop
 - **Accessibility**: Respects prefers-reduced-motion and keyboard navigation
@@ -39,34 +41,40 @@ The app features a delightful retro printer aesthetic with animations, sound eff
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or yarn
 - Gemini API key (get one at [Google AI Studio](https://aistudio.google.com/app/apikey))
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/ideaprinter.git
    cd ideaprinter
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    ```
 
    Edit `.env.local` and add your Gemini API key:
+
    ```env
    GEMINI_API_KEY=your_api_key_here
    ```
 
 4. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -154,13 +162,17 @@ GEMINI_MODEL=gemini-2.5-flash
 ### Customization
 
 #### Printer Colors
+
 Edit `components/printer/PrinterInterface.tsx` to change the printer color scheme:
+
 ```tsx
-className="bg-[#E63946]"  // Printer body color (currently red)
+className = 'bg-[#E63946]'; // Printer body color (currently red)
 ```
 
 #### Categories
+
 Edit `lib/types/idea.ts` to add/remove categories:
+
 ```typescript
 export const IDEA_CATEGORIES = [
   'Technology',
@@ -185,6 +197,7 @@ npm run type-check   # Run TypeScript compiler
 ### Vercel (Recommended)
 
 1. **Push to GitHub**
+
    ```bash
    git push origin main
    ```
@@ -197,7 +210,9 @@ npm run type-check   # Run TypeScript compiler
    - Deploy!
 
 ### Environment Variables in Production
+
 Set these in your Vercel dashboard:
+
 - `GEMINI_API_KEY`: Your Gemini API key
 
 ## 🔐 Security
@@ -241,9 +256,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🗺️ Roadmap
 
-- [X] User accounts and cloud sync (localStorage implementation)
-- [X] Idea history with search and filtering (✅ Completed)
-- [X] Rate limiting for fair usage (✅ Completed)
+- [x] User accounts and cloud sync (localStorage implementation)
+- [x] Idea history with search and filtering (✅ Completed)
+- [x] Rate limiting for fair usage (✅ Completed)
 - [ ] More AI models (Claude, GPT-4, etc.)
 - [ ] Collaborative idea refinement
 - [ ] Export to PDF with custom designs

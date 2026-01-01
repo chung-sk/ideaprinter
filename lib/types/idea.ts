@@ -13,7 +13,7 @@ export const IDEA_CATEGORIES = [
   'Other',
 ] as const;
 
-export type IdeaCategory = typeof IDEA_CATEGORIES[number];
+export type IdeaCategory = (typeof IDEA_CATEGORIES)[number];
 
 // Data model types (per data-model.md)
 
@@ -39,7 +39,7 @@ export const GEMINI_MODELS = [
   'gemini-3-flash-preview',
 ] as const;
 
-export type GeminiModel = typeof GEMINI_MODELS[number];
+export type GeminiModel = (typeof GEMINI_MODELS)[number];
 
 export interface UserConfiguration {
   id: string;
@@ -92,4 +92,16 @@ export interface IdeaGenerationResponse {
   uniqueId: string;
   durationMs: number;
   apiKeySource: 'default' | 'user_provided';
+}
+
+// Simplified type for sharing (subset of GeneratedIdea)
+export interface Idea {
+  id: string;
+  name: string; // maps to appName
+  category: IdeaCategory;
+  generatedAt: string;
+  concept: string;
+  gap: string; // maps to theGap
+  fix: string; // maps to theFix
+  provenance?: TrendProvenance;
 }

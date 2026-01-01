@@ -10,6 +10,7 @@ This describes the conceptual entities and validation rules (not code).
 Represents a selectable ingestion source.
 
 **Fields**
+
 - `id`: stable identifier (string)
 - `kind`: enum-like value (e.g., `hacker_news`, `tech_news_rss`, `x_twitter`, future: `reddit`)
 - `displayName`: human-readable label
@@ -17,6 +18,7 @@ Represents a selectable ingestion source.
 - `config`: per-source configuration (see below)
 
 **Validation rules**
+
 - `kind` must be one of supported values
 - `displayName` must be non-empty
 - If `requiresCredential` is true, required credential fields must be present before ingestion starts
@@ -26,6 +28,7 @@ Represents a selectable ingestion source.
 A normalized representation of a single external item.
 
 **Fields**
+
 - `id`: unique ID within the app (string)
 - `platform`: source platform label (`hackernews`, `rss`, `x` / `twitter`, etc.)
 - `externalId`: external ID (optional/empty if not available)
@@ -37,6 +40,7 @@ A normalized representation of a single external item.
 - `blocked`: boolean (if true, must not be stored/displayed)
 
 **Validation rules**
+
 - `id` must be non-empty
 - `excerpt.length <= 280`
 - `sourceUrl` should be present if the source provides it; if missing, UI must show “no link available”
@@ -47,6 +51,7 @@ A normalized representation of a single external item.
 Represents a single ingestion job/run.
 
 **Fields**
+
 - `id`: job ID
 - `trendSourceId`: reference to TrendSource
 - `status`: `pending | running | completed | failed`
@@ -58,11 +63,13 @@ Represents a single ingestion job/run.
 - `posts`: `TrendPost[]` (only included when completed)
 
 **State transitions**
+
 - `pending -> running -> completed`
 - `pending -> running -> failed`
 - `pending -> failed` (if validation fails before starting)
 
 **Validation rules**
+
 - terminal statuses are `completed` and `failed`
 - polling MUST stop once terminal status is reached
 
@@ -71,6 +78,7 @@ Represents a single ingestion job/run.
 Subset of fields stored on a GeneratedIdea.
 
 **Fields**
+
 - `sourceKind` / `platform`
 - `sourceUrl`
 - `author` (optional)
@@ -78,6 +86,7 @@ Subset of fields stored on a GeneratedIdea.
 - `excerpt` (optional)
 
 **Validation rules**
+
 - Must not exceed excerpt cap
 - Must always reference the selected TrendPost (by URL or by stored TrendPost id)
 
@@ -86,7 +95,9 @@ Subset of fields stored on a GeneratedIdea.
 Existing GeneratedIdea is extended with optional provenance.
 
 **Fields**
+
 - `trendProvenance`: optional `TrendProvenance`
 
 **Validation rules**
+
 - When generated “from trend post”, `trendProvenance` must be present

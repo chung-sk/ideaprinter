@@ -100,6 +100,7 @@ npm run dev
 ```
 
 The application will be available at:
+
 - **Local**: http://localhost:3000
 - **Network**: http://192.168.x.x:3000 (for mobile testing)
 
@@ -179,6 +180,7 @@ npm run type-check
 ### Git Hooks (Pre-commit)
 
 The project uses Husky for pre-commit hooks:
+
 - Linting with ESLint
 - Formatting with Prettier
 - Type checking with TypeScript
@@ -193,14 +195,18 @@ If pre-commit checks fail, fix the issues before committing.
 ### Add a New Idea Category
 
 1. Update `lib/types/idea.ts`:
+
    ```typescript
    export const IDEA_CATEGORIES = [
-     'Technology', 'Travel', 'Finance', // ... existing
-     'YourNewCategory' // Add here
+     'Technology',
+     'Travel',
+     'Finance', // ... existing
+     'YourNewCategory', // Add here
    ] as const;
    ```
 
 2. Update Prisma enum in `prisma/schema.prisma`:
+
    ```prisma
    enum Category {
      TECHNOLOGY
@@ -223,7 +229,7 @@ Edit `components/printer/PrinterInterface.tsx`:
 const paperFeedVariants = {
   initial: { y: -100, opacity: 0 },
   animate: { y: 0, opacity: 1, transition: { duration: 0.8 } },
-  exit: { y: 100, opacity: 0, transition: { duration: 0.5 } }
+  exit: { y: 100, opacity: 0, transition: { duration: 0.5 } },
 };
 ```
 
@@ -245,6 +251,7 @@ You are a creative app idea generator...
 ### Issue: "Module not found" errors
 
 **Solution**: Delete `node_modules` and reinstall:
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
@@ -253,6 +260,7 @@ npm install
 ### Issue: Database connection fails
 
 **Solution**: Check your `POSTGRES_URL` in `.env.local`. Verify:
+
 ```bash
 npx prisma db pull
 ```
@@ -260,6 +268,7 @@ npx prisma db pull
 ### Issue: Gemini API key invalid
 
 **Solution**: Verify your API key:
+
 1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Generate a new key if needed
 3. Update `GEMINI_API_KEY` in `.env.local`
@@ -268,6 +277,7 @@ npx prisma db pull
 ### Issue: Tests failing
 
 **Solution**: Clear test cache:
+
 ```bash
 npm run test:clear
 npm test
@@ -276,6 +286,7 @@ npm test
 ### Issue: Port 3000 already in use
 
 **Solution**: Use a different port:
+
 ```bash
 PORT=3001 npm run dev
 ```
@@ -287,6 +298,7 @@ PORT=3001 npm run dev
 ### Deploy to Vercel (Recommended)
 
 1. Push code to GitHub:
+
    ```bash
    git push origin 001-idea-printer
    ```
@@ -316,6 +328,7 @@ npm start
 ```
 
 **Server requirements**:
+
 - Node.js 18+
 - PostgreSQL database
 - HTTPS enabled (required for secure cookie authentication)
@@ -327,6 +340,7 @@ npm start
 ### Enable Web Vitals Reporting
 
 The application automatically tracks:
+
 - First Contentful Paint (FCP)
 - Time to Interactive (TTI)
 - Cumulative Layout Shift (CLS)
@@ -370,6 +384,7 @@ AND created_at > NOW() - INTERVAL '1 day';
 ## Support
 
 For issues or questions:
+
 1. Check the [Troubleshooting](#troubleshooting) section
 2. Review error logs in `logs/` directory
 3. Open an issue in the repository with:
@@ -382,6 +397,7 @@ For issues or questions:
 ## Next Steps
 
 After completing the quickstart:
+
 1. Review the [specification](spec.md) for feature requirements
 2. Check the [task list](tasks.md) for implementation phases (created via `/speckit.tasks`)
 3. Run E2E tests to verify critical user journeys

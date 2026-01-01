@@ -5,13 +5,13 @@
 **Status**: Draft  
 **Input**: User description: "Option B: Multi-source trend sourcing. Replace Apify-only ingestion with a provider-based approach supporting Twitter/X via official API, plus free tech-news sources (Hacker News and RSS feeds) with a path to add Reddit and other sources. Keep existing TrendPost normalization, safety (excerpt-only), dedupe, provenance, and UI flows (config -> ingest -> select -> generate -> history)."
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 <!--
   IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
   Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
   you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
+
   Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
   Think of each story as a standalone slice of functionality that can be:
   - Developed independently
@@ -79,7 +79,7 @@ As a user, I want the system to be able to add new trend sources (such as Reddit
 - User starts ingestion and refreshes the page while ingestion is in progress.
 - User initiates ingestion repeatedly (spam-click).
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -125,7 +125,7 @@ When a source does not provide optional fields (such as author, timestamp, or li
 
 - **NFR-001 (Accessibility)**: Any new or changed UI for this feature (config, ingestion flow, selection UI, status messages) MUST meet WCAG 2.1 AA expectations: keyboard navigable, visible focus, non-color-only affordances, and screen-reader-friendly status updates for ingestion progress/errors.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Trend Source**: A selectable source category representing where posts come from (e.g., X/Twitter, Hacker News, Tech News Feeds, Reddit).
 - **Trend Ingestion Run**: A record of a single ingestion attempt, including selected source, timestamps, status (queued/running/completed/failed), and a count of posts ingested.
@@ -141,7 +141,7 @@ When a source does not provide optional fields (such as author, timestamp, or li
 - For credentialed sources (X/Twitter), the user is responsible for obtaining and providing valid credentials.
 - The existing safety and excerpt-only constraints remain in effect for all sources.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 
@@ -150,4 +150,3 @@ When a source does not provide optional fields (such as author, timestamp, or li
 - **SC-003**: Generated ideas include provenance for 100% of trend-driven generations (even if some provenance fields are “unknown” due to missing metadata).
 - **SC-004**: Duplicate trend posts shown to the user after repeated ingestion runs are reduced to near-zero (no more than 1 duplicate per 50 posts displayed).
 - **SC-005**: No stored trend post excerpt exceeds 280 characters (0 instances above the cap when sampling 1,000 stored posts).
-

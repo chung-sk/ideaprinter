@@ -14,23 +14,24 @@ Key clarification: global quota tracking may be **best-effort in-memory** for MV
 **Language/Version**: TypeScript 5.6, React 18.3, Next.js 14.2 (App Router)
 **Primary Dependencies**: `next`, `react`, `@google/generative-ai`, `framer-motion`, `lucide-react`
 **Storage**:
+
 - Client: localStorage/sessionStorage for user config/history (existing)
 - Server: N/A for quota persistence in MVP (in-memory state). In local dev, store quota state on `globalThis` to avoid HMR reinitializing the counter during page navigation.
-**Testing**: Vitest (unit + integration), Playwright (E2E), MSW for mocks
-**Target Platform**: Next.js runtime (local dev + typical serverless deployment)
-**Project Type**: Web application (single Next.js app with API routes)
-**Performance Goals**:
+  **Testing**: Vitest (unit + integration), Playwright (E2E), MSW for mocks
+  **Target Platform**: Next.js runtime (local dev + typical serverless deployment)
+  **Project Type**: Web application (single Next.js app with API routes)
+  **Performance Goals**:
 - UI interactions: snappy (no heavy synchronous work)
 - API: quota checks must be fast (in-memory read/modify)
-**Constraints**:
+  **Constraints**:
 - No login/accounts
 - No DB/Redis required for MVP quota tracking
 - Best-effort enforcement acceptable under concurrency/instance reload (per spec clarification)
-**Scale/Scope**: MVP usage; shared key is protected from casual exhaustion, not hardened against distributed abuse
+  **Scale/Scope**: MVP usage; shared key is protected from casual exhaustion, not hardened against distributed abuse
 
 ## Constitution Check
 
-*GATE: Must pass before implementation proceeds.*
+_GATE: Must pass before implementation proceeds._
 
 - **Code Quality**: PASS
   - No secrets hardcoded; keys handled via env and user config
@@ -103,6 +104,7 @@ tests/
 ### Phase 2: Task Planning (Next)
 
 Tasks should be updated to reflect:
+
 - Removal of per-session quota and cookies
 - Global quota module behavior and tests
 - UI updates (key mode indicator + shared remaining)

@@ -14,11 +14,11 @@ interface TrendInterfaceProps {
   isLoading?: boolean;
 }
 
-export default function TrendInterface({ 
-  preferredSource, 
-  selectedPostId, 
+export default function TrendInterface({
+  preferredSource,
+  selectedPostId,
   onSelectPost,
-  isLoading: parentLoading 
+  isLoading: parentLoading,
 }: TrendInterfaceProps) {
   const [posts, setPosts] = useState<TrendPost[]>([]);
   const [ingestionStatus, setIngestionStatus] = useState<IngestionStatus | null>(null);
@@ -28,7 +28,9 @@ export default function TrendInterface({
   // Load existing posts on mount
   useEffect(() => {
     const storedPosts = getTrendPosts();
-    const filtered = storedPosts.filter(p => p.sourceKind === preferredSource || p.platform === preferredSource);
+    const filtered = storedPosts.filter(
+      (p) => p.sourceKind === preferredSource || p.platform === preferredSource
+    );
     setPosts(filtered);
   }, [preferredSource]);
 
@@ -36,13 +38,17 @@ export default function TrendInterface({
     try {
       setError(null);
       setIngestionStatus('pending');
-      
+
       // Get user config for credentials
       const userConfig = getUserConfig();
       const requestBody: Record<string, unknown> = { sourceKind: preferredSource };
-      
+
       // Add credentials for X/Twitter if needed
-      if (preferredSource === 'x_twitter' && userConfig?.xTwitterConfig?.hasToken && userConfig.encryptedXBearerToken) {
+      if (
+        preferredSource === 'x_twitter' &&
+        userConfig?.xTwitterConfig?.hasToken &&
+        userConfig.encryptedXBearerToken
+      ) {
         try {
           const decryptedToken = await decryptApiKey(userConfig.encryptedXBearerToken);
           requestBody.xBearerToken = decryptedToken;
@@ -54,18 +60,18 @@ export default function TrendInterface({
           throw new Error('Failed to decrypt X bearer token');
         }
       }
-      
+
       const response = await fetch('/api/trends/ingest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
-      
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to start ingestion');
       }
-      
+
       const data = await response.json();
       setJobId(data.jobId);
       setIngestionStatus('running');
@@ -84,32 +90,34 @@ export default function TrendInterface({
       try {
         const response = await fetch(`/api/trends/ingest/${jobId}`);
         if (!response.ok) return;
-        
+
         const data = await response.json();
-        
+
         if (data.status === 'completed') {
           setIngestionStatus('completed');
-          
+
           // Save new posts
           if (data.posts && Array.isArray(data.posts)) {
             const newPosts = data.posts as TrendPost[];
             const existing = getTrendPosts();
-            
+
             // Merge posts (avoid duplicates by ID)
             const merged = [...existing];
-            newPosts.forEach(p => {
-              if (!merged.some(e => e.id === p.id)) {
+            newPosts.forEach((p) => {
+              if (!merged.some((e) => e.id === p.id)) {
                 merged.push(p);
               }
             });
-            
+
             saveTrendPosts(merged);
-            
+
             // Update display
-            const filtered = merged.filter(p => p.sourceKind === preferredSource || p.platform === preferredSource);
+            const filtered = merged.filter(
+              (p) => p.sourceKind === preferredSource || p.platform === preferredSource
+            );
             setPosts(filtered);
           }
-          
+
           setJobId(null);
         } else if (data.status === 'failed') {
           setIngestionStatus('failed');
@@ -130,7 +138,12 @@ export default function TrendInterface({
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
         <h3 className="font-mono text-sm font-bold text-green-500 uppercase tracking-wider">
-          SOURCE: {preferredSource === 'hackernews' ? 'HACKER NEWS' : preferredSource === 'rss_bundle' ? 'TECH NEWS' : preferredSource}
+          SOURCE:{' '}
+          {preferredSource === 'hackernews'
+            ? 'HACKER NEWS'
+            : preferredSource === 'rss_bundle'
+              ? 'TECH NEWS'
+              : preferredSource}
         </h3>
         <button
           onClick={startIngestion}
@@ -144,17 +157,24 @@ export default function TrendInterface({
       </div>
 
       <div aria-live="polite" className="sr-only">
-        {isLoading ? 'Syncing trends...' : error ? `Error: ${error}` : `Showing ${posts.length} trend posts`}
+        {isLoading
+          ? 'Syncing trends...'
+          : error
+            ? `Error: ${error}`
+            : `Showing ${posts.length} trend posts`}
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-900/30 text-red-400 text-xs font-mono rounded flex items-center gap-2 border border-red-800" role="alert">
+        <div
+          className="mb-4 p-3 bg-red-900/30 text-red-400 text-xs font-mono rounded flex items-center gap-2 border border-red-800"
+          role="alert"
+        >
           <AlertCircle className="w-4 h-4" />
           {error}
         </div>
       )}
 
-      <div 
+      <div
         className="flex-1 overflow-y-auto max-h-[300px] space-y-2 pr-2 custom-scrollbar"
         role="listbox"
         aria-label="Trend posts"
@@ -188,21 +208,28 @@ export default function TrendInterface({
               }`}
             >
               <div className="flex justify-between items-start gap-2">
-                <h4 className={`font-mono text-xs md:text-sm mb-1 line-clamp-2 ${selectedPostId === post.id ? 'text-green-400 font-bold' : 'text-gray-300'}`}>
-                  {selectedPostId === post.id ? '> ' : ''}{post.excerpt || 'No content'}
+                <h4
+                  className={`font-mono text-xs md:text-sm mb-1 line-clamp-2 ${selectedPostId === post.id ? 'text-green-400 font-bold' : 'text-gray-300'}`}
+                >
+                  {selectedPostId === post.id ? '> ' : ''}
+                  {post.excerpt || 'No content'}
                 </h4>
-                {selectedPostId === post.id && <Check className="w-4 h-4 text-green-500 flex-shrink-0" />}
+                {selectedPostId === post.id && (
+                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                )}
               </div>
-              
+
               <div className="flex justify-between items-center mt-2 text-[10px] font-mono text-gray-500 uppercase">
                 <span>{post.author || 'UNKNOWN'}</span>
-                <span>{post.postedAt ? new Date(post.postedAt).toLocaleDateString() : 'DATE?'}</span>
+                <span>
+                  {post.postedAt ? new Date(post.postedAt).toLocaleDateString() : 'DATE?'}
+                </span>
               </div>
-              
+
               {post.sourceUrl && (
-                <a 
-                  href={post.sourceUrl} 
-                  target="_blank" 
+                <a
+                  href={post.sourceUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                   className="mt-2 inline-flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 hover:underline focus:outline-none focus:text-blue-200"

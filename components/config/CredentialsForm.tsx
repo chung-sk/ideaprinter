@@ -31,10 +31,24 @@ const MODEL_DESCRIPTIONS: Record<GeminiModel, string> = {
   'gemini-3-flash-preview': '🧪 Preview - Cutting edge, experimental features',
 };
 
-const TREND_SOURCES: { kind: TrendSourceKind; label: string; description: string; requiresAuth?: boolean }[] = [
+const TREND_SOURCES: {
+  kind: TrendSourceKind;
+  label: string;
+  description: string;
+  requiresAuth?: boolean;
+}[] = [
   { kind: 'hackernews', label: 'Hacker News', description: 'Top stories from Y Combinator' },
-  { kind: 'rss_bundle', label: 'Tech News (RSS)', description: 'Curated tech feeds (TechCrunch, Verge, etc.)' },
-  { kind: 'x_twitter', label: 'X (Twitter)', description: 'Search tweets (requires bearer token)', requiresAuth: true },
+  {
+    kind: 'rss_bundle',
+    label: 'Tech News (RSS)',
+    description: 'Curated tech feeds (TechCrunch, Verge, etc.)',
+  },
+  {
+    kind: 'x_twitter',
+    label: 'X (Twitter)',
+    description: 'Search tweets (requires bearer token)',
+    requiresAuth: true,
+  },
 ];
 
 interface CredentialsFormProps {
@@ -64,7 +78,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
       setSelectedModel(config.preferredModel || 'gemini-2.5-flash');
       setSelectedSource(config.preferredSource || 'hackernews');
       setSelectedCategories(config.preferredCategories || []);
-      
+
       // Load X/Twitter config if present
       if (config.encryptedXBearerToken) {
         decryptApiKey(config.encryptedXBearerToken)
@@ -80,7 +94,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
       if (config.xTwitterConfig?.defaultQuery) {
         setXQuery(config.xTwitterConfig.defaultQuery);
       }
-      
+
       // Try to decrypt and display existing key (masked)
       if (config.encryptedGeminiApiKey) {
         decryptApiKey(config.encryptedGeminiApiKey)
@@ -116,7 +130,9 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
     if (apiKey && !apiKey.includes('...')) {
       // Not a masked key, validate format
       if (!validateGeminiApiKey(apiKey)) {
-        setError('Invalid API key format. Gemini API keys start with "AIza" and are 39 characters long.');
+        setError(
+          'Invalid API key format. Gemini API keys start with "AIza" and are 39 characters long.'
+        );
         return false;
       }
 
@@ -169,7 +185,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
         const existingConfig = getUserConfig();
         encryptedKey = existingConfig?.encryptedGeminiApiKey;
       }
-      
+
       // Encrypt X bearer token if provided and not masked
       let encryptedXToken: string | undefined;
       if (xBearerToken && !xBearerToken.includes('...')) {
@@ -187,10 +203,12 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
         preferredSource: selectedSource,
         preferredCategories: selectedCategories,
         encryptedXBearerToken: encryptedXToken,
-        xTwitterConfig: encryptedXToken ? {
-          hasToken: true,
-          defaultQuery: xQuery || undefined,
-        } : undefined,
+        xTwitterConfig: encryptedXToken
+          ? {
+              hasToken: true,
+              defaultQuery: xQuery || undefined,
+            }
+          : undefined,
         generationCount: getUserConfig()?.generationCount || 0,
         createdAt: getUserConfig()?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -225,7 +243,11 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
   };
 
   const handleClear = () => {
-    if (confirm('Are you sure you want to clear your custom API key? You will use the default key for future generations.')) {
+    if (
+      confirm(
+        'Are you sure you want to clear your custom API key? You will use the default key for future generations.'
+      )
+    ) {
       // Clear configuration
       const existingConfig = getUserConfig();
       const config: UserConfiguration = {
@@ -296,7 +318,8 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
           Gemini API Key (Optional)
         </label>
         <p className="text-sm text-gray-500 mb-3">
-          Provide your own Gemini API key for unlimited generations. Leave empty to use the shared default key.
+          Provide your own Gemini API key for unlimited generations. Leave empty to use the shared
+          default key.
         </p>
         <div className="relative">
           <input
@@ -337,11 +360,10 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
 
       {/* AI Model Selection */}
       <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          AI Model
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">AI Model</label>
         <p className="text-sm text-gray-500 mb-3">
-          Choose which Gemini model to use for generating ideas. Different models offer different trade-offs between speed and quality.
+          Choose which Gemini model to use for generating ideas. Different models offer different
+          trade-offs between speed and quality.
         </p>
         <select
           value={selectedModel}
@@ -359,9 +381,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
 
       {/* Trend Source Selection */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Trend Source
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Trend Source</label>
         <p className="text-sm text-gray-500 mb-3">
           Choose where to fetch trends from for idea generation.
         </p>
@@ -378,7 +398,9 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               <div className="flex items-center justify-between mb-1">
-                <span className={`font-medium ${selectedSource === source.kind ? 'text-red-700' : 'text-gray-900'}`}>
+                <span
+                  className={`font-medium ${selectedSource === source.kind ? 'text-red-700' : 'text-gray-900'}`}
+                >
                   {source.label}
                 </span>
                 {selectedSource === source.kind && <Check className="w-4 h-4 text-red-600" />}
@@ -393,7 +415,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
       {selectedSource === 'x_twitter' && (
         <div className="mb-8 p-4 border-2 border-yellow-200 bg-yellow-50 rounded-lg">
           <h3 className="text-sm font-medium text-gray-900 mb-3">X (Twitter) Configuration</h3>
-          
+
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Bearer Token (Required)
@@ -424,7 +446,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
               </button>
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Default Search Query
@@ -441,7 +463,7 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
               disabled={isLoading}
             />
           </div>
-          
+
           <p className="text-xs text-gray-600 mt-3">
             <strong>Note:</strong> X API requires authentication. Get your bearer token from the{' '}
             <a
@@ -451,7 +473,8 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
               className="text-red-600 hover:text-red-700 underline"
             >
               X Developer Portal
-            </a>.
+            </a>
+            .
           </p>
         </div>
       )}
@@ -469,7 +492,10 @@ export default function CredentialsForm({ onClose, onSave }: CredentialsFormProp
             <button
               key={category}
               onClick={() => toggleCategory(category)}
-              disabled={isLoading || (!selectedCategories.includes(category) && selectedCategories.length >= 5)}
+              disabled={
+                isLoading ||
+                (!selectedCategories.includes(category) && selectedCategories.length >= 5)
+              }
               className={`px-4 py-2 rounded-lg border-2 transition-all ${
                 selectedCategories.includes(category)
                   ? 'bg-red-600 text-white border-red-600'

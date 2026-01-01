@@ -61,10 +61,10 @@ Every trend source must implement the `TrendSourceProvider` interface from `lib/
 
 ```typescript
 export interface TrendSourceProvider {
-  kind: TrendSourceKind;              // Unique identifier (e.g., 'hackernews', 'x_twitter')
-  displayName: string;                 // Human-readable name (e.g., 'Hacker News', 'X (Twitter)')
-  requiresCredential: boolean;         // True if authentication is required
-  fetch(options?: FetchOptions): Promise<RawTrendPost[]>;  // Fetch and return raw posts
+  kind: TrendSourceKind; // Unique identifier (e.g., 'hackernews', 'x_twitter')
+  displayName: string; // Human-readable name (e.g., 'Hacker News', 'X (Twitter)')
+  requiresCredential: boolean; // True if authentication is required
+  fetch(options?: FetchOptions): Promise<RawTrendPost[]>; // Fetch and return raw posts
 }
 ```
 
@@ -75,7 +75,7 @@ export interface TrendSourceProvider {
 Add your new source kind to `lib/types/trends.ts`:
 
 ```typescript
-export type TrendSourceKind = 
+export type TrendSourceKind =
   | 'hackernews'
   | 'rss_bundle'
   | 'x_twitter'
@@ -88,49 +88,47 @@ export type TrendSourceKind =
 Create a new file in `lib/trends/sources/` (e.g., `reddit.ts`):
 
 ```typescript
-import type { TrendSourceProvider, RawTrendPost, FetchOptions } from './types'
+import type { TrendSourceProvider, RawTrendPost, FetchOptions } from './types';
 
 export const RedditSource: TrendSourceProvider = {
   kind: 'reddit',
   displayName: 'Reddit',
-  requiresCredential: false,  // Set to true if authentication needed
+  requiresCredential: false, // Set to true if authentication needed
 
   async fetch(options: FetchOptions = {}): Promise<RawTrendPost[]> {
-    const { limit = 30 } = options
+    const { limit = 30 } = options;
 
     try {
       // Implement your fetching logic here
       const response = await fetch('https://www.reddit.com/r/programming/hot.json', {
         signal: AbortSignal.timeout(10000), // 10s timeout
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Reddit API error: ${response.status}`)
+        throw new Error(`Reddit API error: ${response.status}`);
       }
 
-      const data = await response.json()
-      
-      // Transform to RawTrendPost format
-      const posts: RawTrendPost[] = data.data.children
-        .slice(0, limit)
-        .map((child: any) => ({
-          externalId: child.data.id,
-          author: child.data.author,
-          content: child.data.title,
-          postedAt: new Date(child.data.created_utc * 1000).toISOString(),
-          sourceUrl: `https://reddit.com${child.data.permalink}`,
-        }))
+      const data = await response.json();
 
-      return posts
+      // Transform to RawTrendPost format
+      const posts: RawTrendPost[] = data.data.children.slice(0, limit).map((child: any) => ({
+        externalId: child.data.id,
+        author: child.data.author,
+        content: child.data.title,
+        postedAt: new Date(child.data.created_utc * 1000).toISOString(),
+        sourceUrl: `https://reddit.com${child.data.permalink}`,
+      }));
+
+      return posts;
     } catch (error) {
       // Sanitize error messages (no credential leakage)
       if (error instanceof Error) {
-        throw new Error(`Failed to fetch from Reddit: ${error.message}`)
+        throw new Error(`Failed to fetch from Reddit: ${error.message}`);
       }
-      throw new Error('Failed to fetch from Reddit')
+      throw new Error('Failed to fetch from Reddit');
     }
   },
-}
+};
 ```
 
 #### 3. Register the Source
@@ -138,14 +136,14 @@ export const RedditSource: TrendSourceProvider = {
 Add your source to the registry in `lib/trends/sources/registry.ts`:
 
 ```typescript
-import { RedditSource } from './reddit'
+import { RedditSource } from './reddit';
 
 const SOURCES: TrendSourceProvider[] = [
   HackerNewsSource,
   RssBundleSource,
   XTwitterSource,
-  RedditSource,  // Add your source here
-]
+  RedditSource, // Add your source here
+];
 ```
 
 #### 4. Handle Credentials (If Required)
@@ -177,10 +175,7 @@ export interface UserConfiguration {
 // Validate credentials for sources that require them
 if (source.requiresCredential) {
   if (sourceKind === 'reddit' && !body.redditToken) {
-    return NextResponse.json(
-      { error: 'Reddit token is required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Reddit token is required' }, { status: 400 });
   }
 }
 ```
@@ -203,8 +198,8 @@ if (preferredSource === 'reddit' && userConfig?.redditConfig?.hasToken) {
 describe('Reddit Source', () => {
   it('should fetch posts from Reddit API', async () => {
     // Mock fetch and test
-  })
-})
+  });
+});
 ```
 
 **b) Add integration tests** in `tests/integration/api/trends-ingest.test.ts`:
@@ -212,7 +207,7 @@ describe('Reddit Source', () => {
 ```typescript
 it('should ingest from reddit source', async () => {
   // Test ingestion with your source
-})
+});
 ```
 
 **c) Update MSW handlers** in `tests/msw/handlers.ts` for deterministic tests:
@@ -221,10 +216,12 @@ it('should ingest from reddit source', async () => {
 http.get('https://www.reddit.com/r/programming/hot.json', () => {
   return HttpResponse.json({
     data: {
-      children: [/* mock data */]
-    }
-  })
-})
+      children: [
+        /* mock data */
+      ],
+    },
+  });
+});
 ```
 
 ### Best Practices
@@ -242,7 +239,7 @@ http.get('https://www.reddit.com/r/programming/hot.json', () => {
 A minimal source template is available in `lib/trends/sources/_template.ts`:
 
 ```typescript
-import type { TrendSourceProvider, RawTrendPost, FetchOptions } from './types'
+import type { TrendSourceProvider, RawTrendPost, FetchOptions } from './types';
 
 export const TemplateSource: TrendSourceProvider = {
   kind: 'template',
@@ -250,12 +247,12 @@ export const TemplateSource: TrendSourceProvider = {
   requiresCredential: false,
 
   async fetch(options: FetchOptions = {}): Promise<RawTrendPost[]> {
-    const { limit = 30 } = options
+    const { limit = 30 } = options;
 
     // TODO: Implement your fetching logic
-    throw new Error('Template source not implemented')
+    throw new Error('Template source not implemented');
   },
-}
+};
 ```
 
 ### Source Registration Order
@@ -265,4 +262,3 @@ Sources are processed in the order they appear in the registry. Consider:
 - **Free sources first** (better UX for onboarding)
 - **Popular sources** before niche ones
 - **Alphabetical order** within each category (free vs credentialed)
-

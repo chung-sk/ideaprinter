@@ -67,10 +67,12 @@ You can use these free tools to generate icons:
 ## Current Status
 
 ✅ **Application is fully functional without these assets**
+
 - Synthesized sounds work well
 - Browser defaults used for favicon
 - PWA still installable (with browser defaults)
 
 🎨 **Recommended for production**:
+
 - Add custom icons for branding
 - Optional: Add custom printer sounds for enhanced UX

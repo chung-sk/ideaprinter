@@ -14,13 +14,24 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'ideaprinter - Generate Unique App Ideas | powered by rytix.tech',
-  description: 'A retro-styled printer interface that generates unique app ideas addressing specific market gaps using AI. Powered by rytix.tech.',
-  keywords: ['app ideas', 'AI generator', 'startup ideas', 'market gaps', 'Gemini AI', 'idea generation', 'ideaprinter', 'rytix.tech'],
+  description:
+    'A retro-styled printer interface that generates unique app ideas addressing specific market gaps using AI. Powered by rytix.tech.',
+  keywords: [
+    'app ideas',
+    'AI generator',
+    'startup ideas',
+    'market gaps',
+    'Gemini AI',
+    'idea generation',
+    'ideaprinter',
+    'rytix.tech',
+  ],
   authors: [{ name: 'rytix.tech' }],
   metadataBase: new URL('https://ideaprinter.vercel.app'),
   openGraph: {
     title: 'ideaprinter - Generate Unique App Ideas',
-    description: 'Generate market-driven app ideas with our retro printer interface powered by rytix.tech',
+    description:
+      'Generate market-driven app ideas with our retro printer interface powered by rytix.tech',
     type: 'website',
     locale: 'en_US',
     siteName: 'ideaprinter',
@@ -36,18 +47,14 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'ideaprinter - Generate Unique App Ideas',
-    description: 'Generate market-driven app ideas with our retro printer interface powered by rytix.tech',
+    description:
+      'Generate market-driven app ideas with our retro printer interface powered by rytix.tech',
     images: ['/og-image.png'],
     creator: '@rytixtech',
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
-    ],
-    apple: [
-      { url: '/apple-icon.png', sizes: '180x180' },
-    ],
+    icon: [{ url: '/favicon.ico' }, { url: '/icon.png', type: 'image/png', sizes: '32x32' }],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180' }],
   },
   manifest: '/manifest.json',
   robots: {
@@ -63,11 +70,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>

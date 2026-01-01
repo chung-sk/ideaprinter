@@ -87,3 +87,5 @@ CLAUDE.md
 .tmp_prereq.json
 test-results/.last-run.json
 playwright-report/index.html
+.eslintrc.json
+.prettierrc

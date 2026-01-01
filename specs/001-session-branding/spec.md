@@ -36,7 +36,7 @@
 - The system can differentiate between requests using the shared default API key versus a user-provided API key.
 - The system can track shared-key usage globally across requests to enforce limits consistently.
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Global Quota Limits for Shared Default Key (Priority: P1)
 
@@ -93,7 +93,7 @@ As a visitor, I can clearly see that the product is called “ideaprinter” and
 - What happens when idea generation fails (should it count against the limit)?
 - What happens if a user’s device time is incorrect or changes suddenly?
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -109,7 +109,7 @@ As a visitor, I can clearly see that the product is called “ideaprinter” and
 - **FR-012**: Branding MUST remain readable on both desktop and mobile layouts
 - **FR-013**: Branding MUST NOT block or materially interfere with the primary IdeaPrinter user flows (generate, view output, navigate)
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Shared-Key Global Usage**: Represents usage tracking for the shared/default API key
   - Successful generation count: number of completed idea generations within the allowance windows
@@ -120,7 +120,7 @@ As a visitor, I can clearly see that the product is called “ideaprinter” and
   - Logo: ideaprinter visual mark
   - Attribution text: “powered by rytix.tech”
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

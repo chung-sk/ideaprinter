@@ -21,7 +21,7 @@ Make sure:
 Generate a fresh, innovative idea now.`;
 
 export function createIdeaPrompt(
-  preferredCategory?: string, 
+  preferredCategory?: string,
   trendContext?: { content: string; source: string; author?: string }
 ): string {
   let prompt = IDEA_GENERATION_PROMPT;
@@ -33,6 +33,6 @@ export function createIdeaPrompt(
   if (preferredCategory) {
     prompt += `\n\nPreferred category: ${preferredCategory}`;
   }
-  
+
   return prompt;
 }

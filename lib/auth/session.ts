@@ -1,6 +1,6 @@
 /**
  * Session Management for User Tracking
- * 
+ *
  * Tracks user sessions for analytics and history management.
  * Uses localStorage for persistent session IDs.
  */
@@ -128,13 +128,13 @@ export function clearSession(): void {
  */
 export function trackSessionEvent(eventName: string, data?: Record<string, unknown>): void {
   const session = getSessionData();
-  
+
   console.log('[Session Event]', {
     event: eventName,
     sessionId: session.sessionId,
     timestamp: new Date().toISOString(),
     ...data,
   });
-  
+
   // In production, this would send to analytics service
 }

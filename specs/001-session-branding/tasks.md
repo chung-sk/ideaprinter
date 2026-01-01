@@ -1,7 +1,5 @@
 ---
-
-description: "Task list for feature implementation"
-
+description: 'Task list for feature implementation'
 ---
 
 # Tasks: Anonymous Session Limits & Branding

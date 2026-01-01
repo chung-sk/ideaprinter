@@ -23,7 +23,7 @@ The Idea Printer is a web application that generates unique, market-driven app i
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### Pre-Research Gates (Phase 0)
 
@@ -115,10 +115,10 @@ __tests__/                   # Alternative test location (Jest convention)
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
 
 ---
 
@@ -127,25 +127,27 @@ __tests__/                   # Alternative test location (Jest convention)
 ### Deliverables
 
 **Phase 0 (Research)**:
--  [research.md](research.md) - All technical decisions resolved (animation library, database, testing, deployment)
+
+- [research.md](research.md) - All technical decisions resolved (animation library, database, testing, deployment)
 
 **Phase 1 (Design)**:
--  [data-model.md](data-model.md) - Three core entities with validation rules for localStorage storage
--  [contracts/api-spec.yaml](contracts/api-spec.yaml) - OpenAPI 3.1 specification with API endpoints
--  [quickstart.md](quickstart.md) - Developer setup guide with troubleshooting
--  Agent context updated (GitHub Copilot instructions)
+
+- [data-model.md](data-model.md) - Three core entities with validation rules for localStorage storage
+- [contracts/api-spec.yaml](contracts/api-spec.yaml) - OpenAPI 3.1 specification with API endpoints
+- [quickstart.md](quickstart.md) - Developer setup guide with troubleshooting
+- Agent context updated (GitHub Copilot instructions)
 
 ### Technology Stack Summary
 
-| Layer | Technology | Justification |
-|-------|-----------|---------------|
-| **Frontend** | Next.js 14+ App Router + React | Modern full-stack framework with server components |
-| **UI/Animations** | Framer Motion | Declarative animations, React-native, accessibility support |
-| **AI Generation** | Google Gemini 2.0 Flash | Fast, cost-effective, streaming responses |
-| **Storage** | Browser localStorage + sessionStorage | Zero hosting costs, simple deployment, device-specific data |
-| **Encryption** | Web Crypto API (AES-GCM) | Built-in browser encryption for API keys |
-| **Testing** | Vitest + MSW + Playwright | Fast, modern, comprehensive coverage |
-| **Deployment** | Vercel | Zero-config, Next.js optimization, generous free tier, no database costs |
+| Layer             | Technology                            | Justification                                                            |
+| ----------------- | ------------------------------------- | ------------------------------------------------------------------------ |
+| **Frontend**      | Next.js 14+ App Router + React        | Modern full-stack framework with server components                       |
+| **UI/Animations** | Framer Motion                         | Declarative animations, React-native, accessibility support              |
+| **AI Generation** | Google Gemini 2.0 Flash               | Fast, cost-effective, streaming responses                                |
+| **Storage**       | Browser localStorage + sessionStorage | Zero hosting costs, simple deployment, device-specific data              |
+| **Encryption**    | Web Crypto API (AES-GCM)              | Built-in browser encryption for API keys                                 |
+| **Testing**       | Vitest + MSW + Playwright             | Fast, modern, comprehensive coverage                                     |
+| **Deployment**    | Vercel                                | Zero-config, Next.js optimization, generous free tier, no database costs |
 
 ### Next Steps
 
@@ -163,4 +165,4 @@ __tests__/                   # Alternative test location (Jest convention)
 - Bundle size (target: < 500KB gzipped)
 - User retention (target: 60% week-over-week for 3+ ideas)
 
-**Status**:  Ready for implementation
+**Status**: Ready for implementation

@@ -4,38 +4,85 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import IdeaPrintout from '@/components/printer/IdeaPrintout';
 import { GeneratedIdea } from '@/lib/types/idea';
+import { decodeSharePayload } from '@/lib/share/sharePayload';
 import Link from 'next/link';
 
 function ShareContent() {
   const searchParams = useSearchParams();
   const [idea, setIdea] = useState<GeneratedIdea | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('ShareContent useEffect running...');
     const data = searchParams.get('data');
-    if (data) {
-      try {
-        const decoded = JSON.parse(decodeURIComponent(data));
-        setIdea({
-          id: decoded.id,
-          uniqueId: decoded.id,
-          appName: decoded.name,
-          category: decoded.cat,
-          concept: decoded.con,
-          theGap: decoded.gap,
-          theFix: decoded.fix,
-          generatedAt: decoded.gen
-        });
-      } catch (e) {
-        console.error('Failed to parse idea data', e);
-      }
+    const ideaId = searchParams.get('ideaId');
+    console.log('Data param:', data?.substring(0, 50) + '...');
+
+    // Check for unsupported query params
+    if (ideaId) {
+      setError(
+        'This share link format is not supported. Share links must include the idea data in the URL.'
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    if (!data) {
+      setError('No idea data found in the share link.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Decode using new share utilities (supports versioned + legacy)
+      const decoded = decodeSharePayload(data);
+      console.log('Decoded payload:', decoded);
+
+      setIdea({
+        id: decoded.id,
+        uniqueId: decoded.id,
+        appName: decoded.name,
+        category: decoded.category,
+        concept: decoded.concept,
+        theGap: decoded.gap,
+        theFix: decoded.fix,
+        generatedAt: decoded.generatedAt,
+        provenance: decoded.provenance,
+      });
+      console.log('Idea set successfully');
+      setIsLoading(false);
+    } catch (e) {
+      console.error('Failed to parse idea data', e);
+      setError(
+        'This share link appears to be invalid or corrupted. Please check the URL and try again.'
+      );
+      setIsLoading(false);
     }
   }, [searchParams]);
+
+  if (error) {
+    return (
+      <div className="text-white text-center max-w-md mx-auto">
+        <h1 className="text-2xl font-bold mb-4">Unable to Load Idea</h1>
+        <p className="mb-6 text-gray-200">{error}</p>
+        <Link
+          href="/"
+          className="inline-block bg-white text-[#e63946] px-6 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors"
+        >
+          Generate Your Own Idea
+        </Link>
+      </div>
+    );
+  }
 
   if (!idea) {
     return (
       <div className="text-white text-center">
-        <h1 className="text-2xl font-bold mb-4">Loading Idea...</h1>
-        <Link href="/" className="underline">Go Home</Link>
+        <h1 className="text-2xl font-bold mb-4">{isLoading ? 'Loading Idea...' : 'No Idea Found'}</h1>
+        <Link href="/" className="underline">
+          Go Home
+        </Link>
       </div>
     );
   }
@@ -45,8 +92,8 @@ function ShareContent() {
       <div className="w-full max-w-2xl mb-8">
         <IdeaPrintout idea={idea} />
       </div>
-      
-      <Link 
+
+      <Link
         href="/"
         className="bg-[#1f2937] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-gray-800 transition-colors border-2 border-[#1f2937] hover:border-white"
       >

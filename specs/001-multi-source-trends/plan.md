@@ -19,24 +19,25 @@ All sources must feed the same UX flow (configure → ingest → select post →
 **Language/Version**: TypeScript 5.6, React 18.3, Next.js 14.2 (App Router)
 **Primary Dependencies**: `next`, `react`, `@google/generative-ai`, `vitest`, `@testing-library/react`, `msw`, `playwright`
 **Storage**:
+
 - Client: localStorage/sessionStorage (existing app pattern) for configuration, trend posts, and history
 - Server: in-memory ingestion job store (HMR-safe via `globalThis`) with TTL
-**Testing**: Vitest (unit + integration), MSW for network mocking, Playwright for P1 E2E user journey
-**Target Platform**: Next.js runtime (local dev + typical serverless deployment)
-**Project Type**: Web app (Next.js full-stack: UI + API routes)
-**Performance Goals**:
+  **Testing**: Vitest (unit + integration), MSW for network mocking, Playwright for P1 E2E user journey
+  **Target Platform**: Next.js runtime (local dev + typical serverless deployment)
+  **Project Type**: Web app (Next.js full-stack: UI + API routes)
+  **Performance Goals**:
 - Ingestion endpoints return quickly (`202 Accepted`) and complete asynchronously
 - UI remains responsive; polling stops on terminal states
-**Constraints**:
+  **Constraints**:
 - No new DB/Redis required for MVP
 - Excerpt-only storage: max 280 chars (SC-005)
 - Blocked/unsafe content must not be stored/displayed (FR-006)
 - No secrets hardcoded; credentials never logged
-**Scale/Scope**: MVP multi-source trend ingestion that is extensible (P3) without UX changes
+  **Scale/Scope**: MVP multi-source trend ingestion that is extensible (P3) without UX changes
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ### Pre-Research Gates (Phase 0)
 
@@ -122,9 +123,11 @@ No constitution violations requiring justification.
 ### Deliverables
 
 **Phase 0 (Research)**:
+
 - [research.md](research.md)
 
 **Phase 1 (Design)**:
+
 - [data-model.md](data-model.md)
 - [contracts/api-spec.yaml](contracts/api-spec.yaml)
 - [quickstart.md](quickstart.md)
