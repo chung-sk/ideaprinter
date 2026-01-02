@@ -7,6 +7,8 @@
 [![Gemini AI](https://img.shields.io/badge/Gemini-2.0%20Flash-orange)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+**Status**: ✅ Complete / Production Ready | **Last Updated**: 2026-01-02
+
 ## 🎯 Overview
 
 Idea Printer is a web application that generates unique, market-driven app ideas using Google's Gemini AI. Each idea includes:
@@ -19,24 +21,48 @@ Idea Printer is a web application that generates unique, market-driven app ideas
 
 The app features a delightful retro printer aesthetic with animations, sound effects, and shareable QR codes.
 
+## 🆕 Recent Updates
+
+For the full shipped feature list and technical details, see [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md).
+
+- Added and polished **Idea History** (browse, sort, and manage prior ideas)
+- Added **rate limiting** and hardened request handling for safer demo usage
+- Improved **sharing/export** (QR code + copy/export flows)
+- Strengthened **security defaults** (CSP, validation, safer headers)
+
 ## ✨ Features
 
-### Core Features
+### Core Functionality
 
-- **AI-Powered Generation**: Uses Gemini 2.0 Flash for fast (<5s) idea generation
-- **Retro Printer Interface**: Memo-Rite style design with paper feed animations
-- **Custom API Keys**: Bring your own Gemini API key for unlimited generations
-- **Category Preferences**: Select up to 5 preferred categories
-- **Shareable Ideas**: QR codes and export functionality (JSON/TXT)
-- **Copy to Clipboard**: Quick sharing via clipboard
-- **Encrypted Storage**: API keys stored securely using AES-256-GCM
+- **AI-Powered Idea Generation**: Generate ideas via Google Gemini
+- **Category-Based Generation**: Choose categories and generate targeted ideas
+- **QR Code Sharing**: Share ideas via a dedicated share page
 
 ### User Experience
 
-- **Sound Effects**: Optional printer sounds (paper feed, printing, complete)
-- **Responsive Design**: Works on mobile, tablet, and desktop
-- **Accessibility**: Respects prefers-reduced-motion and keyboard navigation
-- **Offline Support**: PWA-ready with local storage
+- **Retro Printer Aesthetic**: Animations and optional sound effects
+- **Responsive + Accessible**: Keyboard navigation and reduced-motion support
+
+### Configuration & Customization
+
+- **Custom Gemini API Key Support**: Bring your own key
+- **Encrypted Local Storage**: API keys stored securely (AES-256-GCM)
+- **Preferences**: Select up to 5 preferred categories
+
+### History & Management
+
+- **Idea History View**: Browse and manage previously generated ideas
+- **Management Tools**: Search/filter, sorting, pagination, and soft delete
+
+### Performance & Optimization
+
+- **Web Vitals Monitoring**: Client-side performance reporting
+- **Optimized Delivery**: Code splitting and caching for fast loads
+
+### Security
+
+- **Content Security Policy (CSP)** and hardened headers
+- **Rate Limiting** for fair usage protection
 
 ## 🚀 Quick Start
 
@@ -67,10 +93,11 @@ The app features a delightful retro printer aesthetic with animations, sound eff
    cp .env.example .env.local
    ```
 
-   Edit `.env.local` and add your Gemini API key:
+   Edit `.env.local` and add your Gemini API key and site origin:
 
    ```env
    GEMINI_API_KEY=your_api_key_here
+   NEXT_PUBLIC_SITE_ORIGIN=http://localhost:3000
    ```
 
 4. **Run the development server**
@@ -155,6 +182,9 @@ Create a `.env.local` file in the root directory:
 # Gemini AI API Key (required)
 GEMINI_API_KEY=your_gemini_api_key_here
 
+# Required for Production: Public site origin for share URLs
+NEXT_PUBLIC_SITE_ORIGIN=https://ideaprinter.rytix.tech
+
 # Optional: Override the default model
 GEMINI_MODEL=gemini-2.5-flash
 ```
@@ -214,6 +244,7 @@ npm run type-check   # Run TypeScript compiler
 Set these in your Vercel dashboard:
 
 - `GEMINI_API_KEY`: Your Gemini API key
+- `NEXT_PUBLIC_SITE_ORIGIN`: Your production domain
 
 ## 🔐 Security
 
@@ -246,23 +277,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/ideaprinter/discussions)
 - **Email**: support@ideaprinter.app
 
-## � Additional Documentation
+## 📚 Additional Documentation
 
-- **[API Documentation](API_DOCS.md)**: Complete API reference with examples
-- **[Contributing Guide](CONTRIBUTING.md)**: Development setup and guidelines
-- **[Deployment Guide](DEPLOYMENT.md)**: Step-by-step deployment instructions
-- **[Project Summary](PROJECT_SUMMARY.md)**: Complete project overview and status
-- **[Audit Report](AUDIT_REPORT.md)**: Accessibility and responsiveness audit results
+- **[API Documentation](docs/API_DOCS.md)**: Complete API reference with examples
+- **[Contributing Guide](docs/CONTRIBUTING.md)**: Development setup and guidelines
+- **[Deployment Guide](docs/DEPLOYMENT.md)**: Step-by-step deployment instructions
+- **[Project Summary](docs/PROJECT_SUMMARY.md)**: Complete project overview and status
+- **[Audit Report](docs/AUDIT_REPORT.md)**: Accessibility and responsiveness audit results
 
 ## 🗺️ Roadmap
 
-- [x] User accounts and cloud sync (localStorage implementation)
-- [x] Idea history with search and filtering (✅ Completed)
-- [x] Rate limiting for fair usage (✅ Completed)
-- [ ] More AI models (Claude, GPT-4, etc.)
-- [ ] Collaborative idea refinement
-- [ ] Export to PDF with custom designs
-- [ ] Browser extension
+### Future Enhancements
+
+- [ ] Add a database backend for persistence and multi-device sync
+- [ ] Implement user authentication
+- [ ] Expand social sharing features
+- [ ] Add more export formats (PDF, CSV)
+- [ ] Collaborative features (teams)
 
 ---
 
