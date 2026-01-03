@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import IdeaPrintout from '@/components/printer/IdeaPrintout';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { GeneratedIdea } from '@/lib/types/idea';
 import { decodeSharePayload } from '@/lib/share/sharePayload';
 import Link from 'next/link';
@@ -14,10 +15,8 @@ function ShareContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('ShareContent useEffect running...');
     const data = searchParams.get('data');
     const ideaId = searchParams.get('ideaId');
-    console.log('Data param:', data?.substring(0, 50) + '...');
 
     // Check for unsupported query params
     if (ideaId) {
@@ -37,7 +36,6 @@ function ShareContent() {
     try {
       // Decode using new share utilities (supports versioned + legacy)
       const decoded = decodeSharePayload(data);
-      console.log('Decoded payload:', decoded);
 
       setIdea({
         id: decoded.id,
@@ -50,7 +48,6 @@ function ShareContent() {
         generatedAt: decoded.generatedAt,
         provenance: decoded.provenance,
       });
-      console.log('Idea set successfully');
       setIsLoading(false);
     } catch (e) {
       console.error('Failed to parse idea data', e);
@@ -61,6 +58,15 @@ function ShareContent() {
     }
   }, [searchParams]);
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
+        <LoadingSpinner />
+        <p className="text-white mt-4 font-mono animate-pulse">LOADING SHARED IDEA...</p>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="text-white text-center max-w-md mx-auto">
@@ -68,7 +74,7 @@ function ShareContent() {
         <p className="mb-6 text-gray-200">{error}</p>
         <Link
           href="/"
-          className="inline-block bg-white text-[#e63946] px-6 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors"
+          className="inline-block bg-white text-[#e63946] px-6 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white"
         >
           Generate Your Own Idea
         </Link>
@@ -77,14 +83,7 @@ function ShareContent() {
   }
 
   if (!idea) {
-    return (
-      <div className="text-white text-center">
-        <h1 className="text-2xl font-bold mb-4">{isLoading ? 'Loading Idea...' : 'No Idea Found'}</h1>
-        <Link href="/" className="underline">
-          Go Home
-        </Link>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -95,7 +94,7 @@ function ShareContent() {
 
       <Link
         href="/"
-        className="bg-[#1f2937] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-gray-800 transition-colors border-2 border-[#1f2937] hover:border-white"
+        className="bg-[#1f2937] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-gray-800 transition-colors border-2 border-[#1f2937] hover:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white"
       >
         Generate Your Own Idea
       </Link>

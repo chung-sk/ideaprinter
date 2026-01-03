@@ -11,7 +11,7 @@ export default function Branding({ className = '', variant = 'header' }: Brandin
 
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+      <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-h-[44px] px-2">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/brand/ideaprinter-logo.svg"
@@ -30,7 +30,7 @@ export default function Branding({ className = '', variant = 'header' }: Brandin
         href="https://rytix.tech"
         target="_blank"
         rel="noopener noreferrer"
-        className={`uppercase tracking-widest text-gray-500 hover:text-gray-700 mt-1 ${isFooter ? 'text-[8px]' : 'text-[10px]'}`}
+        className={`uppercase tracking-widest text-gray-600 hover:text-gray-800 p-2 block min-h-[44px] flex items-center ${isFooter ? 'text-[8px]' : 'text-[10px]'}`}
       >
         powered by rytix.tech
       </a>

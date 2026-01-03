@@ -13,7 +13,7 @@ export default function ConfigPage() {
       {/* Back Button */}
       <Link
         href="/"
-        className="fixed top-8 left-8 flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 rounded-lg shadow-md transition-colors text-gray-700"
+        className="fixed top-8 left-8 flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 rounded-lg shadow-md transition-colors text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-600"
       >
         <ChevronLeft className="w-5 h-5" />
         <span className="font-medium">Back to Printer</span>

@@ -21,8 +21,10 @@ const nextConfig = {
   },
 
   // Bundle optimization
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
+  webpack: (config, { isServer, dev }) => {
+    // In dev, Next's default chunking plays best with HMR and the App Router.
+    // Overriding splitChunks here has caused runtime module-loading failures.
+    if (!isServer && !dev) {
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {

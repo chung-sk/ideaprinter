@@ -110,8 +110,8 @@ export function decodeSharePayload(encoded: string): Idea {
 
     throw new Error('Unrecognized payload structure');
   } catch (error) {
-    throw new Error(
-      `Failed to decode share payload: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    // Log internal error for debugging, but throw friendly message
+    console.error('Share payload decode error:', error);
+    throw new Error('The share link is invalid or corrupted. Please check the URL.');
   }
 }

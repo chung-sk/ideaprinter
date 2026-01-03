@@ -73,11 +73,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} overflow-x-hidden`}>
         <WebVitalsReporter />
         {/* Branding Header - centered to avoid session info */}
-        <header className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-          <Branding variant="header" />
+        <header className="w-full flex justify-center pt-4 pb-2 md:fixed md:top-4 md:left-1/2 md:transform md:-translate-x-1/2 md:pt-0 md:pb-0 z-50 bg-transparent pointer-events-none" role="banner">
+          <div className="pointer-events-auto">
+            <Branding variant="header" />
+          </div>
         </header>
         {children}
       </body>

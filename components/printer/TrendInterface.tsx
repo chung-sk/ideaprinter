@@ -6,6 +6,7 @@ import { RefreshCw, AlertCircle, Check, ExternalLink } from 'lucide-react';
 import type { TrendPost, IngestionStatus, TrendSourceKind } from '@/lib/types/trends';
 import { getTrendPosts, saveTrendPosts, getUserConfig } from '@/lib/utils/storage';
 import { decryptApiKey } from '@/lib/utils/encryption';
+import { mergeAndDeduplicatePosts } from '@/lib/trends/dedupe';
 
 interface TrendInterfaceProps {
   preferredSource: TrendSourceKind;
@@ -101,13 +102,8 @@ export default function TrendInterface({
             const newPosts = data.posts as TrendPost[];
             const existing = getTrendPosts();
 
-            // Merge posts (avoid duplicates by ID)
-            const merged = [...existing];
-            newPosts.forEach((p) => {
-              if (!merged.some((e) => e.id === p.id)) {
-                merged.push(p);
-              }
-            });
+            // Merge and deduplicate posts (prioritizes new content)
+            const merged = mergeAndDeduplicatePosts(existing, newPosts);
 
             saveTrendPosts(merged);
 

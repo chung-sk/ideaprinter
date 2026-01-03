@@ -1,0 +1,43 @@
+﻿
+> ideaprinter@1.0.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/11) ...
+   Generating static pages (2/11) 
+   Generating static pages (5/11) 
+   Generating static pages (8/11) 
+ Γ£ô Generating static pages (11/11)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+Γöî Γùï /                                    6.87 kB         188 kB
+Γö£ Γùï /_not-found                          134 B           129 kB
+Γö£ ╞Æ /api/config                          0 B                0 B
+Γö£ ╞Æ /api/generate-idea                   0 B                0 B
+Γö£ ╞Æ /api/ideas/[ideaId]                  0 B                0 B
+Γö£ ╞Æ /api/ideas/history                   0 B                0 B
+Γö£ ╞Æ /api/list-models                     0 B                0 B
+Γö£ ╞Æ /api/session                         0 B                0 B
+Γö£ ╞Æ /api/trends/ingest                   0 B                0 B
+Γö£ ╞Æ /api/trends/ingest/[jobId]           0 B                0 B
+Γö£ Γùï /config                              4.02 kB         179 kB
+Γö£ Γùï /history                             2.66 kB         178 kB
+Γöö Γùï /share                               1.16 kB         182 kB
++ First Load JS shared by all            129 kB
+  Γöö chunks/npm.next-4aaffe466fd967d7.js  126 kB
+  Γöö other shared chunks (total)          2.46 kB
+
+
+╞Æ Middleware                             27 kB
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

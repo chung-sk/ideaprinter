@@ -36,6 +36,18 @@ body {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   }
 
+  .min-tap-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-600;
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }

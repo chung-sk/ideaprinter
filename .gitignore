@@ -88,3 +88,7 @@ test-payload-size.js
 test-compact-payload.js
 test-new-limits.js
 .eslintrc.json
+/test-results
+/playwright-report
+/playwright-report
+/playwright-report

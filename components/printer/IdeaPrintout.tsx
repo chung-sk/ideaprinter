@@ -152,18 +152,18 @@ Share URL: ${shareUrl}`;
   return (
     <div className="paper-texture rounded-lg p-8 max-w-2xl mx-auto shadow-xl font-mono-retro bg-[#fdfbf7] relative">
       {/* Action Buttons */}
-      <div className="absolute top-4 right-4 flex gap-2">
+      <div className="flex gap-2 justify-end mb-4 md:absolute md:top-4 md:right-4 md:mb-0">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={copyToClipboard}
-          className="p-2 bg-white hover:bg-gray-50 rounded-lg shadow-md border border-gray-200 transition-colors"
+          className="w-11 h-11 flex items-center justify-center bg-white hover:bg-gray-50 rounded-lg shadow-md border border-gray-200 transition-colors"
           title="Copy to clipboard"
         >
           {copied ? (
-            <Check className="w-4 h-4 text-green-600" />
+            <Check className="w-5 h-5 text-green-600" />
           ) : (
-            <Copy className="w-4 h-4 text-gray-600" />
+            <Copy className="w-5 h-5 text-gray-600" />
           )}
         </motion.button>
 
@@ -171,20 +171,20 @@ Share URL: ${shareUrl}`;
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={exportAsMarkdown}
-          className="p-2 bg-white hover:bg-gray-50 rounded-lg shadow-md border border-gray-200 transition-colors"
+          className="w-11 h-11 flex items-center justify-center bg-white hover:bg-gray-50 rounded-lg shadow-md border border-gray-200 transition-colors"
           title="Export as Markdown (.md)"
         >
-          <FileText className="w-4 h-4 text-gray-600" />
+          <FileText className="w-5 h-5 text-gray-600" />
         </motion.button>
 
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={exportAsText}
-          className="p-2 bg-white hover:bg-gray-50 rounded-lg shadow-md border border-gray-200 transition-colors"
+          className="w-11 h-11 flex items-center justify-center bg-white hover:bg-gray-50 rounded-lg shadow-md border border-gray-200 transition-colors"
           title="Export as text (.txt)"
         >
-          <Download className="w-4 h-4 text-gray-600" />
+          <Download className="w-5 h-5 text-gray-600" />
         </motion.button>
       </div>
 
@@ -194,7 +194,7 @@ Share URL: ${shareUrl}`;
           initial={reducedMotion ? undefined : { opacity: 0 }}
           animate={reducedMotion ? undefined : { opacity: 1 }}
           transition={reducedMotion ? undefined : { duration: 0.5 }}
-          className="text-2xl font-bold text-gray-800 pr-24"
+          className="text-2xl font-bold text-gray-800 md:pr-40"
         >
           {idea.appName}
         </motion.h2>
@@ -292,6 +292,7 @@ Share URL: ${shareUrl}`;
                 level="L"
                 includeMargin={true}
                 data-testid="qr-code"
+                style={{ width: '100%', height: 'auto', maxWidth: '128px' }}
               />
             </div>
             <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">

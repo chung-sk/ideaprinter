@@ -333,9 +333,9 @@ export default function PrinterInterface() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 md:p-8 pt-24 md:pt-32 bg-[#e0dcd5]">
+    <div className="min-h-screen flex flex-col items-center p-4 md:p-8 pt-24 md:pt-32 bg-[#e0dcd5] relative">
       {/* Quota Info - Top Left */}
-      <div className="fixed top-8 left-8 bg-white rounded-lg shadow-lg p-4 z-50 max-w-xs">
+      <div className="absolute md:fixed top-4 md:top-8 left-4 md:left-8 bg-white rounded-lg shadow-lg p-4 z-50 max-w-xs">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500 font-mono">API Key:</span>
@@ -363,7 +363,7 @@ export default function PrinterInterface() {
       </div>
 
       {/* Top Navigation (Settings and History) */}
-      <div className="fixed top-8 right-8 flex gap-4 z-50">
+      <div className="absolute md:fixed top-4 md:top-8 right-4 md:right-8 flex gap-4 z-50">
         <Link
           href="/history"
           className="p-4 bg-white hover:bg-gray-50 rounded-full shadow-lg transition-all hover:shadow-xl group"
@@ -412,7 +412,7 @@ export default function PrinterInterface() {
           <button
             onClick={() => setMode('random')}
             aria-pressed={mode === 'random'}
-            className={`px-4 py-2 rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
+            className={`px-4 py-2 min-h-[44px] rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
               mode === 'random'
                 ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30'
                 : 'bg-[#9D1722] text-red-200 hover:bg-[#8a141e]'
@@ -424,7 +424,7 @@ export default function PrinterInterface() {
           <button
             onClick={() => setMode('trend')}
             aria-pressed={mode === 'trend'}
-            className={`px-4 py-2 rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
+            className={`px-4 py-2 min-h-[44px] rounded-full font-mono text-sm font-bold transition-all flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#E63946] focus:ring-white ${
               mode === 'trend'
                 ? 'bg-[#1F2937] text-green-400 shadow-lg border border-green-500/30'
                 : 'bg-[#9D1722] text-red-200 hover:bg-[#8a141e]'
@@ -543,7 +543,7 @@ export default function PrinterInterface() {
       </motion.div>
 
       {/* Footer Info */}
-      <div className="mt-12 text-center text-gray-400 text-xs font-mono tracking-widest opacity-60">
+      <div className="mt-12 text-center text-gray-600 text-xs font-mono tracking-widest">
         <p>MEMO-RITE CORP. // MODEL 8392-XJ</p>
       </div>
     </div>

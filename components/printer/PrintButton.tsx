@@ -20,7 +20,7 @@ export default function PrintButton({ onClick, disabled, isLoading }: PrintButto
       whileTap={!disabled && !isLoading ? 'pressed' : undefined}
       animate={disabled || isLoading ? 'disabled' : 'idle'}
       className="
-        px-8 py-4 
+        px-8 py-4 min-h-[44px]
         bg-[#e65100] 
         text-white font-bold text-lg rounded-lg
         border-b-4 border-[#bf360c]

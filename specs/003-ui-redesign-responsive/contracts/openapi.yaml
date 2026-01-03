@@ -1,0 +1,489 @@
+openapi: 3.0.3
+info:
+  title: IdeaPrinter API
+  version: 1.0.0
+  description: |
+    API surface used by the IdeaPrinter web app. Some endpoints validate requests but
+    instruct the client to use localStorage for persistence.
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /api/generate-idea:
+    post:
+      summary: Generate an idea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdeaGenerationRequest'
+      responses:
+        '200':
+          description: Generated idea
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaGenerationResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Shared key quota exhausted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Generation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: Generation timeout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/list-models:
+    get:
+      summary: List Gemini models
+      parameters:
+        - in: query
+          name: apiKey
+          required: false
+          schema:
+            type: string
+          description: Optional user-provided Gemini API key.
+      responses:
+        '200':
+          description: Models list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  totalModels:
+                    type: integer
+                  generateContentModels:
+                    type: integer
+                  models:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GeminiModelInfo'
+                  allModels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GeminiModelInfo'
+        '400':
+          description: Missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/config:
+    get:
+      summary: Get configuration structure guidance
+      responses:
+        '200':
+          description: Config guidance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserConfigResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Validate configuration update (client stores locally)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserConfigRequest'
+      responses:
+        '200':
+          description: Validation success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  hasCustomApiKey:
+                    type: boolean
+                  preferredCategories:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Clear configuration (client clears locally)
+      responses:
+        '200':
+          description: Clear confirmation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ideas/history:
+    get:
+      summary: Validate and describe history pagination (client stores locally)
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          required: false
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          required: false
+        - in: query
+          name: category
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [generatedAt, appName, category]
+          required: false
+        - in: query
+          name: sortOrder
+          schema:
+            type: string
+            enum: [asc, desc]
+          required: false
+      responses:
+        '200':
+          description: Pagination guidance
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/ideas/{ideaId}:
+    get:
+      summary: Validate idea id and describe retrieval (client stores locally)
+      parameters:
+        - in: path
+          name: ideaId
+          required: true
+          schema:
+            type: string
+          description: UUID
+      responses:
+        '200':
+          description: Retrieval guidance
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Validate idea id and describe deletion (client stores locally)
+      parameters:
+        - in: path
+          name: ideaId
+          required: true
+          schema:
+            type: string
+          description: UUID
+      responses:
+        '200':
+          description: Deletion guidance
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/trends/ingest:
+    post:
+      summary: Start async trend ingestion job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestRequest'
+      responses:
+        '202':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  status:
+                    type: string
+                    enum: [pending]
+                  sourceKind:
+                    type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/trends/ingest/{jobId}:
+    get:
+      summary: Get ingestion job status
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: string
+        retryAfter:
+          type: integer
+      additionalProperties: true
+
+    IdeaGenerationRequest:
+      type: object
+      properties:
+        userApiKey:
+          type: string
+          nullable: true
+        preferredCategory:
+          type: string
+          nullable: true
+        modelName:
+          type: string
+          nullable: true
+        trendContext:
+          type: object
+          nullable: true
+          properties:
+            content:
+              type: string
+            source:
+              type: string
+            author:
+              type: string
+              nullable: true
+      additionalProperties: false
+
+    IdeaGenerationResponse:
+      type: object
+      required:
+        - id
+        - appName
+        - category
+        - concept
+        - theGap
+        - theFix
+        - generatedAt
+        - uniqueId
+        - durationMs
+        - apiKeySource
+      properties:
+        id:
+          type: string
+        appName:
+          type: string
+        category:
+          type: string
+        concept:
+          type: string
+        theGap:
+          type: string
+        theFix:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        uniqueId:
+          type: string
+        durationMs:
+          type: integer
+        apiKeySource:
+          type: string
+          enum: [default, user_provided]
+      additionalProperties: false
+
+    GeminiModelInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        supportedGenerationMethods:
+          type: array
+          items:
+            type: string
+        inputTokenLimit:
+          type: integer
+        outputTokenLimit:
+          type: integer
+      additionalProperties: true
+
+    UserConfigRequest:
+      type: object
+      properties:
+        geminiApiKey:
+          type: string
+          nullable: true
+        preferredCategories:
+          type: array
+          items:
+            type: string
+          nullable: true
+      additionalProperties: false
+
+    UserConfigResponse:
+      type: object
+      properties:
+        hasCustomApiKey:
+          type: boolean
+        preferredCategories:
+          type: array
+          items:
+            type: string
+        generationCount:
+          type: integer
+        message:
+          type: string
+      additionalProperties: true
+
+    IngestRequest:
+      type: object
+      required:
+        - sourceKind
+      properties:
+        sourceKind:
+          type: string
+        xBearerToken:
+          type: string
+          nullable: true
+        xQuery:
+          type: string
+          nullable: true
+      additionalProperties: false

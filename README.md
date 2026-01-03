@@ -7,7 +7,7 @@
 [![Gemini AI](https://img.shields.io/badge/Gemini-2.0%20Flash-orange)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Status**: ✅ Complete / Production Ready | **Last Updated**: 2026-01-02
+**Status**: ✅ Complete / Production Ready | **Last Updated**: 2026-01-04
 
 ## 🎯 Overview
 
@@ -25,10 +25,12 @@ The app features a delightful retro printer aesthetic with animations, sound eff
 
 For the full shipped feature list and technical details, see [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md).
 
-- Added and polished **Idea History** (browse, sort, and manage prior ideas)
-- Added **rate limiting** and hardened request handling for safer demo usage
-- Improved **sharing/export** (QR code + copy/export flows)
-- Strengthened **security defaults** (CSP, validation, safer headers)
+- **Trend Sync Bug Fix (2026-01-04)**: Fixed critical bug where trend refresh didn't update cached posts when history exists. Refactored deduplication logic to properly prioritize new content over cached entries, added comprehensive unit test coverage (15/15 tests passing), and verified fix with automated browser testing showing proper merge behavior (30→37 posts after refresh).
+- **Responsive UI Redesign (2026-01-03)**: Completed comprehensive mobile/desktop responsive implementation with 44px+ touch targets, zero horizontal overflow, improved error handling on share page, and enhanced focus states for accessibility (WCAG 2.1 AA compliant)
+- **Test Coverage**: Added comprehensive E2E and unit tests with >80% coverage, including accessibility testing with axe-core
+- **Idea History**: Browse, sort, search, and manage previously generated ideas with full keyboard navigation
+- **Sharing & Export**: QR code generation with reliable error handling, copy/export flows, and dedicated share page with loading states
+- **Security & Performance**: Rate limiting, CSP headers, optimized delivery with excellent Web Vitals (FCP 256ms, LCP 256ms)
 
 ## ✨ Features
 

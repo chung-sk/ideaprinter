@@ -53,14 +53,15 @@ export function deduplicatePosts(posts: TrendPost[]): TrendPost[] {
 
 /**
  * Merge new posts with existing posts and deduplicate
+ * Prioritizes new posts over existing when duplicates are found
  */
 export function mergeAndDeduplicatePosts(
   existingPosts: TrendPost[],
   newPosts: TrendPost[]
 ): TrendPost[] {
-  // Combine both sets (existing first to preserve their order)
-  const combined = [...existingPosts, ...newPosts];
+  // Combine both sets (NEW posts first to prioritize fresh content)
+  const combined = [...newPosts, ...existingPosts];
 
-  // Deduplicate the combined set
+  // Deduplicate the combined set (keeps first occurrence = new posts)
   return deduplicatePosts(combined);
 }
