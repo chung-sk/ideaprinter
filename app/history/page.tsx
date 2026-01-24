@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import IdeaHistory from '@/components/history/IdeaHistory';
+import { Header } from '@/components/common/Header';
 
 export const metadata: Metadata = {
   title: 'Idea History - Idea Printer',
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function HistoryPage() {
-  return <IdeaHistory />;
+  return (
+    <>
+      <Header />
+      <IdeaHistory />
+    </>
+  );
 }

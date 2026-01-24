@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { updateSession } from './lib/supabase/middleware';
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -59,8 +60,11 @@ function checkRateLimit(identifier: string): { allowed: boolean; remaining: numb
   };
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Update Supabase session for all requests
+  let response = await updateSession(request);
 
   // Apply rate limiting to API routes
   if (pathname.startsWith('/api/generate-idea')) {
@@ -88,27 +92,24 @@ export function middleware(request: NextRequest) {
     }
 
     // Add rate limit headers to successful responses
-    const response = NextResponse.next();
     response.headers.set('X-RateLimit-Limit', String(MAX_REQUESTS_PER_WINDOW));
     response.headers.set('X-RateLimit-Remaining', String(remaining));
     response.headers.set('X-RateLimit-Reset', String(Math.floor(resetTime / 1000)));
-    return response;
   }
 
-  // Content Security Policy
+  // Content Security Policy - Updated to include Supabase
   const cspHeader = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval/inline
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://generativelanguage.googleapis.com",
+    "connect-src 'self' https://generativelanguage.googleapis.com https://*.supabase.co",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
 
-  const response = NextResponse.next();
   response.headers.set('Content-Security-Policy', cspHeader);
 
   return response;

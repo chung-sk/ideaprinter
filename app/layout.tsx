@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import WebVitalsReporter from '@/components/common/WebVitalsReporter';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -70,8 +71,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <WebVitalsReporter />
-        {children}
+        <AuthProvider>
+          <WebVitalsReporter />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
