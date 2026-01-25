@@ -4,6 +4,7 @@
  */
 
 import type { GeneratedIdea, UserConfiguration, GenerationRequest } from '@/lib/types/idea';
+import type { IngestionRun, TrendPost } from '@/lib/types/trends';
 
 const STORAGE_KEYS = {
   API_KEY: 'ideaprinter_api_key',
@@ -12,6 +13,9 @@ const STORAGE_KEYS = {
   GENERATED_IDEAS: 'ideaPrinter_generatedIdeas',
   USER_CONFIG: 'ideaPrinter_userConfig',
   CURRENT_REQUESTS: 'ideaPrinter_currentRequests',
+  TREND_POSTS: 'ideaPrinter_trendPosts',
+  INGESTION_RUNS: 'ideaPrinter_ingestionRuns',
+  TREND_SOURCES: 'ideaPrinter_trendSources',
 } as const;
 
 export type StorageKey = keyof typeof STORAGE_KEYS;
@@ -209,19 +213,24 @@ export function verifyStorageOperations(): {
       result.errors.push('Delete operation did not remove item');
     }
   } catch (error) {
-    result.errors.push(`Delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    result.errors.push(
+      `Delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 
   // Get storage quota info (if available)
   if ('storage' in navigator && 'estimate' in navigator.storage) {
-    navigator.storage.estimate().then((estimate) => {
-      if (estimate.quota && estimate.usage) {
-        result.quota = estimate.quota;
-        result.usage = estimate.usage;
-      }
-    }).catch(() => {
-      // Quota estimation not critical, ignore errors
-    });
+    navigator.storage
+      .estimate()
+      .then((estimate) => {
+        if (estimate.quota && estimate.usage) {
+          result.quota = estimate.quota;
+          result.usage = estimate.usage;
+        }
+      })
+      .catch(() => {
+        // Quota estimation not critical, ignore errors
+      });
   }
 
   return result;
@@ -237,11 +246,11 @@ export function verifyStorageOperations(): {
 export function getGeneratedIdeas(): GeneratedIdea[] {
   const data = localStorage.getItem(STORAGE_KEYS.GENERATED_IDEAS);
   if (!data) return [];
-  
+
   try {
     const ideas = JSON.parse(data) as GeneratedIdea[];
     // Filter out soft-deleted ideas by default
-    return ideas.filter(idea => !idea.deletedAt);
+    return ideas.filter((idea) => !idea.deletedAt);
   } catch (error) {
     console.error('Error parsing generated ideas:', error);
     return [];
@@ -269,7 +278,7 @@ export function saveGeneratedIdea(idea: GeneratedIdea): boolean {
 export function getAllGeneratedIdeas(): GeneratedIdea[] {
   const data = localStorage.getItem(STORAGE_KEYS.GENERATED_IDEAS);
   if (!data) return [];
-  
+
   try {
     return JSON.parse(data) as GeneratedIdea[];
   } catch (error) {
@@ -284,7 +293,7 @@ export function getAllGeneratedIdeas(): GeneratedIdea[] {
 export function deleteGeneratedIdea(ideaId: string): boolean {
   try {
     const ideas = getAllGeneratedIdeas();
-    const updated = ideas.map(idea => 
+    const updated = ideas.map((idea) =>
       idea.id === ideaId ? { ...idea, deletedAt: new Date().toISOString() } : idea
     );
     localStorage.setItem(STORAGE_KEYS.GENERATED_IDEAS, JSON.stringify(updated));
@@ -301,7 +310,7 @@ export function deleteGeneratedIdea(ideaId: string): boolean {
 export function getUserConfig(): UserConfiguration | null {
   const data = localStorage.getItem(STORAGE_KEYS.USER_CONFIG);
   if (!data) return null;
-  
+
   try {
     return JSON.parse(data) as UserConfiguration;
   } catch (error) {
@@ -328,10 +337,10 @@ export function saveUserConfig(config: UserConfiguration): boolean {
  */
 export function getGenerationRequests(): GenerationRequest[] {
   if (typeof window === 'undefined') return [];
-  
+
   const data = sessionStorage.getItem(STORAGE_KEYS.CURRENT_REQUESTS);
   if (!data) return [];
-  
+
   try {
     return JSON.parse(data) as GenerationRequest[];
   } catch (error) {
@@ -345,7 +354,7 @@ export function getGenerationRequests(): GenerationRequest[] {
  */
 export function saveGenerationRequest(request: GenerationRequest): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   try {
     const requests = getGenerationRequests();
     requests.push(request);
@@ -360,14 +369,15 @@ export function saveGenerationRequest(request: GenerationRequest): boolean {
 /**
  * Update an existing generation request in sessionStorage
  */
-export function updateGenerationRequest(requestId: string, updates: Partial<GenerationRequest>): boolean {
+export function updateGenerationRequest(
+  requestId: string,
+  updates: Partial<GenerationRequest>
+): boolean {
   if (typeof window === 'undefined') return false;
-  
+
   try {
     const requests = getGenerationRequests();
-    const updated = requests.map(req => 
-      req.id === requestId ? { ...req, ...updates } : req
-    );
+    const updated = requests.map((req) => (req.id === requestId ? { ...req, ...updates } : req));
     sessionStorage.setItem(STORAGE_KEYS.CURRENT_REQUESTS, JSON.stringify(updated));
     return true;
   } catch (error) {
@@ -386,7 +396,7 @@ export function updateGenerationRequest(requestId: string, updates: Partial<Gene
 export function getIdeaById(ideaId: string): GeneratedIdea | null {
   try {
     const ideas = getGeneratedIdeas();
-    return ideas.find(idea => idea.id === ideaId) || null;
+    return ideas.find((idea) => idea.id === ideaId) || null;
   } catch (error) {
     console.error('Error getting idea by ID:', error);
     return null;
@@ -416,26 +426,20 @@ export function getPaginatedIdeas(options: {
   limit: number;
   totalPages: number;
 } {
-  const {
-    page = 1,
-    limit = 10,
-    category,
-    sortBy = 'generatedAt',
-    sortOrder = 'desc',
-  } = options;
+  const { page = 1, limit = 10, category, sortBy = 'generatedAt', sortOrder = 'desc' } = options;
 
   try {
     let ideas = getGeneratedIdeas();
 
     // Filter by category
     if (category) {
-      ideas = ideas.filter(idea => idea.category === category);
+      ideas = ideas.filter((idea) => idea.category === category);
     }
 
     // Sort ideas
     ideas.sort((a, b) => {
       let comparison = 0;
-      
+
       if (sortBy === 'generatedAt') {
         comparison = new Date(a.generatedAt).getTime() - new Date(b.generatedAt).getTime();
       } else if (sortBy === 'appName') {
@@ -475,16 +479,16 @@ export function getPaginatedIdeas(options: {
 /**
  * Check if an idea with similar content already exists (prevent duplicates)
  */
-export function checkIdeaUniqueness(newIdea: {
-  appName: string;
-  concept: string;
-}): { isUnique: boolean; similarIdea?: GeneratedIdea } {
+export function checkIdeaUniqueness(newIdea: { appName: string; concept: string }): {
+  isUnique: boolean;
+  similarIdea?: GeneratedIdea;
+} {
   try {
     const ideas = getGeneratedIdeas();
-    
+
     // Check for exact app name match
     const exactMatch = ideas.find(
-      idea => idea.appName.toLowerCase() === newIdea.appName.toLowerCase()
+      (idea) => idea.appName.toLowerCase() === newIdea.appName.toLowerCase()
     );
 
     if (exactMatch) {
@@ -493,12 +497,12 @@ export function checkIdeaUniqueness(newIdea: {
 
     // Check for very similar concepts (simple string similarity)
     const conceptLower = newIdea.concept.toLowerCase();
-    const similarConcept = ideas.find(idea => {
+    const similarConcept = ideas.find((idea) => {
       const existingConceptLower = idea.concept.toLowerCase();
       // Simple similarity check: if concepts share >70% of words
       const newWords = new Set(conceptLower.split(/\s+/));
       const existingWords = new Set(existingConceptLower.split(/\s+/));
-      const intersection = new Set([...newWords].filter(word => existingWords.has(word)));
+      const intersection = new Set([...newWords].filter((word) => existingWords.has(word)));
       const similarity = intersection.size / Math.min(newWords.size, existingWords.size);
       return similarity > 0.7;
     });
@@ -527,7 +531,7 @@ export function searchIdeas(query: string): GeneratedIdea[] {
       return ideas;
     }
 
-    return ideas.filter(idea => {
+    return ideas.filter((idea) => {
       return (
         idea.appName.toLowerCase().includes(queryLower) ||
         idea.concept.toLowerCase().includes(queryLower) ||
@@ -553,14 +557,14 @@ export function getIdeaStatistics(): {
 } {
   try {
     const ideas = getGeneratedIdeas();
-    
+
     const byCategory: Record<string, number> = {};
-    ideas.forEach(idea => {
+    ideas.forEach((idea) => {
       byCategory[idea.category] = (byCategory[idea.category] || 0) + 1;
     });
 
-    const sorted = [...ideas].sort((a, b) => 
-      new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
+    const sorted = [...ideas].sort(
+      (a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime()
     );
 
     return {
@@ -584,11 +588,95 @@ export function getIdeaStatistics(): {
 export function deleteIdeaPermanently(ideaId: string): boolean {
   try {
     const ideas = getAllGeneratedIdeas();
-    const filtered = ideas.filter(idea => idea.id !== ideaId);
+    const filtered = ideas.filter((idea) => idea.id !== ideaId);
     localStorage.setItem(STORAGE_KEYS.GENERATED_IDEAS, JSON.stringify(filtered));
     return true;
   } catch (error) {
     console.error('Error permanently deleting idea:', error);
+    return false;
+  }
+}
+
+// ============================================================================
+// Trends: Posts + Ingestion Runs
+// ============================================================================
+
+export function getTrendPosts(): TrendPost[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.TREND_POSTS);
+    if (!data) return [];
+    const posts = JSON.parse(data) as TrendPost[];
+
+    // Filter out any blocked posts (safety check)
+    return Array.isArray(posts) ? posts.filter((p) => !p.blocked) : [];
+  } catch (error) {
+    console.error('Error reading trend posts:', error);
+    return [];
+  }
+}
+
+export function saveTrendPosts(posts: TrendPost[]): boolean {
+  try {
+    // Never persist blocked posts
+    const safePosts = posts.filter((p) => !p.blocked);
+    localStorage.setItem(STORAGE_KEYS.TREND_POSTS, JSON.stringify(safePosts));
+    return true;
+  } catch (error) {
+    console.error('Error saving trend posts:', error);
+    return false;
+  }
+}
+
+export function getIngestionRuns(): IngestionRun[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.INGESTION_RUNS);
+    if (!data) return [];
+    const runs = JSON.parse(data) as IngestionRun[];
+    return Array.isArray(runs) ? runs : [];
+  } catch (error) {
+    console.error('Error reading ingestion runs:', error);
+    return [];
+  }
+}
+
+export function saveIngestionRuns(runs: IngestionRun[]): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEYS.INGESTION_RUNS, JSON.stringify(runs));
+    return true;
+  } catch (error) {
+    console.error('Error saving ingestion runs:', error);
+    return false;
+  }
+}
+
+export function getTrendSources(): Array<{
+  kind: string;
+  displayName: string;
+  lastFetchedAt: Date;
+}> {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.TREND_SOURCES);
+    if (!data) return [];
+    const sources = JSON.parse(data);
+
+    // Convert lastFetchedAt back to Date objects
+    return Array.isArray(sources)
+      ? sources.map((s) => ({ ...s, lastFetchedAt: new Date(s.lastFetchedAt) }))
+      : [];
+  } catch (error) {
+    console.error('Error reading trend sources:', error);
+    return [];
+  }
+}
+
+export function saveTrendSources(
+  sources: Array<{ kind: string; displayName: string; lastFetchedAt: Date }>
+): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEYS.TREND_SOURCES, JSON.stringify(sources));
+    return true;
+  } catch (error) {
+    console.error('Error saving trend sources:', error);
     return false;
   }
 }

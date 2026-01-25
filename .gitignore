@@ -12,12 +12,6 @@ coverage/
 .next/
 out/
 build/
-dist/
-
-# Production
-.vercel
-
-# Misc
 .DS_Store
 *.pem
 Thumbs.db
@@ -80,6 +74,21 @@ Thumbs.db
 # Logs
 logs/
 *.log
-/docs
 DEPLOYMENT_GUIDE.md
 CLAUDE.md
+/tests
+.tmp_prereq.json
+test-results/.last-run.json
+playwright-report/index.html
+.eslintrc.json
+.prettierrc
+test-tighter-limits.js
+test-real-ideas.js
+test-payload-size.js
+test-compact-payload.js
+test-new-limits.js
+.eslintrc.json
+/test-results
+/playwright-report
+/playwright-report
+/playwright-report

@@ -7,6 +7,8 @@
 [![Gemini AI](https://img.shields.io/badge/Gemini-2.0%20Flash-orange)](https://ai.google.dev/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+**Status**: ✅ Complete / Production Ready | **Last Updated**: 2026-01-04
+
 ## 🎯 Overview
 
 Idea Printer is a web application that generates unique, market-driven app ideas using Google's Gemini AI. Each idea includes:
@@ -19,54 +21,89 @@ Idea Printer is a web application that generates unique, market-driven app ideas
 
 The app features a delightful retro printer aesthetic with animations, sound effects, and shareable QR codes.
 
+## 🆕 Recent Updates
+
+For the full shipped feature list and technical details, see [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md).
+
+- **Trend Sync Bug Fix (2026-01-04)**: Fixed critical bug where trend refresh didn't update cached posts when history exists. Refactored deduplication logic to properly prioritize new content over cached entries, added comprehensive unit test coverage (15/15 tests passing), and verified fix with automated browser testing showing proper merge behavior (30→37 posts after refresh).
+- **Responsive UI Redesign (2026-01-03)**: Completed comprehensive mobile/desktop responsive implementation with 44px+ touch targets, zero horizontal overflow, improved error handling on share page, and enhanced focus states for accessibility (WCAG 2.1 AA compliant)
+- **Test Coverage**: Added comprehensive E2E and unit tests with >80% coverage, including accessibility testing with axe-core
+- **Idea History**: Browse, sort, search, and manage previously generated ideas with full keyboard navigation
+- **Sharing & Export**: QR code generation with reliable error handling, copy/export flows, and dedicated share page with loading states
+- **Security & Performance**: Rate limiting, CSP headers, optimized delivery with excellent Web Vitals (FCP 256ms, LCP 256ms)
+
 ## ✨ Features
 
-### Core Features
-- **AI-Powered Generation**: Uses Gemini 2.0 Flash for fast (<5s) idea generation
-- **Retro Printer Interface**: Memo-Rite style design with paper feed animations
-- **Custom API Keys**: Bring your own Gemini API key for unlimited generations
-- **Category Preferences**: Select up to 5 preferred categories
-- **Shareable Ideas**: QR codes and export functionality (JSON/TXT)
-- **Copy to Clipboard**: Quick sharing via clipboard
-- **Encrypted Storage**: API keys stored securely using AES-256-GCM
+### Core Functionality
+
+- **AI-Powered Idea Generation**: Generate ideas via Google Gemini
+- **Category-Based Generation**: Choose categories and generate targeted ideas
+- **QR Code Sharing**: Share ideas via a dedicated share page
 
 ### User Experience
-- **Sound Effects**: Optional printer sounds (paper feed, printing, complete)
-- **Responsive Design**: Works on mobile, tablet, and desktop
-- **Accessibility**: Respects prefers-reduced-motion and keyboard navigation
-- **Offline Support**: PWA-ready with local storage
+
+- **Retro Printer Aesthetic**: Animations and optional sound effects
+- **Responsive + Accessible**: Keyboard navigation and reduced-motion support
+
+### Configuration & Customization
+
+- **Custom Gemini API Key Support**: Bring your own key
+- **Encrypted Local Storage**: API keys stored securely (AES-256-GCM)
+- **Preferences**: Select up to 5 preferred categories
+
+### History & Management
+
+- **Idea History View**: Browse and manage previously generated ideas
+- **Management Tools**: Search/filter, sorting, pagination, and soft delete
+
+### Performance & Optimization
+
+- **Web Vitals Monitoring**: Client-side performance reporting
+- **Optimized Delivery**: Code splitting and caching for fast loads
+
+### Security
+
+- **Content Security Policy (CSP)** and hardened headers
+- **Rate Limiting** for fair usage protection
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or yarn
 - Gemini API key (get one at [Google AI Studio](https://aistudio.google.com/app/apikey))
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/ideaprinter.git
    cd ideaprinter
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    ```
 
-   Edit `.env.local` and add your Gemini API key:
+   Edit `.env.local` and add your Gemini API key and site origin:
+
    ```env
    GEMINI_API_KEY=your_api_key_here
+   NEXT_PUBLIC_SITE_ORIGIN=http://localhost:3000
    ```
 
 4. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -147,6 +184,9 @@ Create a `.env.local` file in the root directory:
 # Gemini AI API Key (required)
 GEMINI_API_KEY=your_gemini_api_key_here
 
+# Required for Production: Public site origin for share URLs
+NEXT_PUBLIC_SITE_ORIGIN=https://ideaprinter.rytix.tech
+
 # Optional: Override the default model
 GEMINI_MODEL=gemini-2.5-flash
 ```
@@ -154,13 +194,17 @@ GEMINI_MODEL=gemini-2.5-flash
 ### Customization
 
 #### Printer Colors
+
 Edit `components/printer/PrinterInterface.tsx` to change the printer color scheme:
+
 ```tsx
-className="bg-[#E63946]"  // Printer body color (currently red)
+className = 'bg-[#E63946]'; // Printer body color (currently red)
 ```
 
 #### Categories
+
 Edit `lib/types/idea.ts` to add/remove categories:
+
 ```typescript
 export const IDEA_CATEGORIES = [
   'Technology',
@@ -185,6 +229,7 @@ npm run type-check   # Run TypeScript compiler
 ### Vercel (Recommended)
 
 1. **Push to GitHub**
+
    ```bash
    git push origin main
    ```
@@ -197,8 +242,11 @@ npm run type-check   # Run TypeScript compiler
    - Deploy!
 
 ### Environment Variables in Production
+
 Set these in your Vercel dashboard:
+
 - `GEMINI_API_KEY`: Your Gemini API key
+- `NEXT_PUBLIC_SITE_ORIGIN`: Your production domain
 
 ## 🔐 Security
 
@@ -231,23 +279,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/ideaprinter/discussions)
 - **Email**: support@ideaprinter.app
 
-## � Additional Documentation
+## 📚 Additional Documentation
 
-- **[API Documentation](API_DOCS.md)**: Complete API reference with examples
-- **[Contributing Guide](CONTRIBUTING.md)**: Development setup and guidelines
-- **[Deployment Guide](DEPLOYMENT.md)**: Step-by-step deployment instructions
-- **[Project Summary](PROJECT_SUMMARY.md)**: Complete project overview and status
-- **[Audit Report](AUDIT_REPORT.md)**: Accessibility and responsiveness audit results
+- **[API Documentation](docs/API_DOCS.md)**: Complete API reference with examples
+- **[Contributing Guide](docs/CONTRIBUTING.md)**: Development setup and guidelines
+- **[Deployment Guide](docs/DEPLOYMENT.md)**: Step-by-step deployment instructions
+- **[Project Summary](docs/PROJECT_SUMMARY.md)**: Complete project overview and status
+- **[Audit Report](docs/AUDIT_REPORT.md)**: Accessibility and responsiveness audit results
 
 ## 🗺️ Roadmap
 
-- [X] User accounts and cloud sync (localStorage implementation)
-- [X] Idea history with search and filtering (✅ Completed)
-- [X] Rate limiting for fair usage (✅ Completed)
-- [ ] More AI models (Claude, GPT-4, etc.)
-- [ ] Collaborative idea refinement
-- [ ] Export to PDF with custom designs
-- [ ] Browser extension
+### Future Enhancements
+
+- [ ] Add a database backend for persistence and multi-device sync
+- [ ] Implement user authentication
+- [ ] Expand social sharing features
+- [ ] Add more export formats (PDF, CSV)
+- [ ] Collaborative features (teams)
 
 ---
 

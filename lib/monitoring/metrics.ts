@@ -94,24 +94,24 @@ class MetricsStore {
     webVitals: Record<string, { value: number; rating: string }>;
   } {
     const averages: Record<string, number> = {};
-    
+
     // Calculate averages for each metric type
     const metricsByName: Record<string, number[]> = {};
-    this.metrics.forEach(metric => {
+    this.metrics.forEach((metric) => {
       if (!metricsByName[metric.name]) {
         metricsByName[metric.name] = [];
       }
       metricsByName[metric.name].push(metric.value);
     });
 
-    Object.keys(metricsByName).forEach(name => {
+    Object.keys(metricsByName).forEach((name) => {
       const values = metricsByName[name];
       averages[name] = values.reduce((a, b) => a + b, 0) / values.length;
     });
 
     // Get latest web vitals
     const latestWebVitals: Record<string, { value: number; rating: string }> = {};
-    this.webVitals.forEach(vital => {
+    this.webVitals.forEach((vital) => {
       latestWebVitals[vital.name] = {
         value: vital.value,
         rating: vital.rating,
@@ -137,10 +137,14 @@ class MetricsStore {
    * Export metrics as JSON
    */
   export(): string {
-    return JSON.stringify({
-      metrics: this.metrics,
-      webVitals: this.webVitals,
-    }, null, 2);
+    return JSON.stringify(
+      {
+        metrics: this.metrics,
+        webVitals: this.webVitals,
+      },
+      null,
+      2
+    );
   }
 
   /**
@@ -149,10 +153,12 @@ class MetricsStore {
   private sendToAnalytics(metric: PerformanceMetric) {
     // Placeholder for analytics integration
     // In production, send to your analytics service (e.g., Google Analytics, Vercel Analytics)
-    
+
     // Example for Google Analytics 4:
     if (typeof window !== 'undefined') {
-      const w = window as Window & { gtag?: (command: string, eventName: string, params: Record<string, unknown>) => void };
+      const w = window as Window & {
+        gtag?: (command: string, eventName: string, params: Record<string, unknown>) => void;
+      };
       if (w.gtag) {
         w.gtag('event', metric.name, {
           value: metric.value,
@@ -168,10 +174,12 @@ class MetricsStore {
   private sendWebVitalToAnalytics(vital: WebVital) {
     // Placeholder for Web Vitals analytics
     // In production, send to your analytics service
-    
+
     // Example for Google Analytics 4:
     if (typeof window !== 'undefined') {
-      const w = window as Window & { gtag?: (command: string, eventName: string, params: Record<string, unknown>) => void };
+      const w = window as Window & {
+        gtag?: (command: string, eventName: string, params: Record<string, unknown>) => void;
+      };
       if (w.gtag) {
         w.gtag('event', vital.name, {
           value: Math.round(vital.name === 'CLS' ? vital.value * 1000 : vital.value),
@@ -255,17 +263,19 @@ export function initializeWebVitals() {
   if (typeof window === 'undefined') return;
 
   // Use the web-vitals library if available
-  import('web-vitals').then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
-    onCLS((metric) => reportWebVital('CLS', metric.value));
-    onFCP((metric) => reportWebVital('FCP', metric.value));
-    onLCP((metric) => reportWebVital('LCP', metric.value));
-    onTTFB((metric) => reportWebVital('TTFB', metric.value));
-    if (onINP) {
-      onINP((metric) => reportWebVital('INP', metric.value));
-    }
-  }).catch((error) => {
-    console.warn('Failed to load web-vitals:', error);
-  });
+  import('web-vitals')
+    .then(({ onCLS, onFCP, onLCP, onTTFB, onINP }) => {
+      onCLS((metric) => reportWebVital('CLS', metric.value));
+      onFCP((metric) => reportWebVital('FCP', metric.value));
+      onLCP((metric) => reportWebVital('LCP', metric.value));
+      onTTFB((metric) => reportWebVital('TTFB', metric.value));
+      if (onINP) {
+        onINP((metric) => reportWebVital('INP', metric.value));
+      }
+    })
+    .catch((error) => {
+      console.warn('Failed to load web-vitals:', error);
+    });
 }
 
 /**

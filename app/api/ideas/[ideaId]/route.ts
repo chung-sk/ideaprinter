@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * GET /api/ideas/[ideaId]
- * 
+ *
  * Get a specific idea by ID (client-side implementation)
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { ideaId: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { ideaId: string } }) {
   try {
     const { ideaId } = params;
 
@@ -37,7 +34,8 @@ export async function GET(
     return NextResponse.json({
       message: 'Ideas are stored client-side in localStorage.',
       ideaId,
-      instructions: 'Use lib/utils/storage.ts getIdeaById() to retrieve the idea from localStorage.',
+      instructions:
+        'Use lib/utils/storage.ts getIdeaById() to retrieve the idea from localStorage.',
     });
   } catch (error) {
     console.error('Get idea API error:', error);
@@ -53,13 +51,10 @@ export async function GET(
 
 /**
  * DELETE /api/ideas/[ideaId]
- * 
+ *
  * Soft delete an idea (client-side implementation)
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { ideaId: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { ideaId: string } }) {
   try {
     const { ideaId } = params;
 

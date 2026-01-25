@@ -39,7 +39,7 @@ class Logger {
 
     // Console output
     const consoleMessage = `[${entry.timestamp}] [${level.toUpperCase()}] ${message}`;
-    
+
     switch (level) {
       case 'debug':
         console.debug(consoleMessage, context || '', error || '');
@@ -64,7 +64,7 @@ class Logger {
   private sendToAnalytics(entry: LogEntry) {
     // Placeholder for analytics integration (e.g., Google Analytics, Sentry)
     // Implementation depends on chosen analytics service
-    
+
     // Example: Send to custom analytics endpoint
     if (entry.level === 'error' || entry.level === 'warn') {
       // In production, you would send this to your analytics service
@@ -132,24 +132,30 @@ export function logGenerationSuccess(context: {
 /**
  * Log generation failure
  */
-export function logGenerationFailure(context: {
-  requestId: string;
-  errorMessage: string;
-  durationMs: number;
-  apiKeySource: 'default' | 'user_provided';
-}, error?: Error) {
+export function logGenerationFailure(
+  context: {
+    requestId: string;
+    errorMessage: string;
+    durationMs: number;
+    apiKeySource: 'default' | 'user_provided';
+  },
+  error?: Error
+) {
   logger.error('Idea generation failed', context, error);
 }
 
 /**
  * Log API errors
  */
-export function logApiError(context: {
-  endpoint: string;
-  method: string;
-  statusCode?: number;
-  errorMessage: string;
-}, error?: Error) {
+export function logApiError(
+  context: {
+    endpoint: string;
+    method: string;
+    statusCode?: number;
+    errorMessage: string;
+  },
+  error?: Error
+) {
   logger.error('API error', context, error);
 }
 
@@ -168,10 +174,7 @@ export function logPerformanceMetric(context: {
 /**
  * Log user action
  */
-export function logUserAction(context: {
-  action: string;
-  details?: Record<string, unknown>;
-}) {
+export function logUserAction(context: { action: string; details?: Record<string, unknown> }) {
   logger.debug('User action', context);
 }
 
@@ -185,23 +188,25 @@ export function getPerformanceMetrics(): {
   successRate: number;
 } {
   const logs = logger.getLogs();
-  
-  const generationLogs = logs.filter(log => 
-    log.message === 'Idea generation successful' || log.message === 'Idea generation failed'
+
+  const generationLogs = logs.filter(
+    (log) =>
+      log.message === 'Idea generation successful' || log.message === 'Idea generation failed'
   );
 
   const totalRequests = generationLogs.length;
-  const failedRequests = generationLogs.filter(log => log.message === 'Idea generation failed').length;
+  const failedRequests = generationLogs.filter(
+    (log) => log.message === 'Idea generation failed'
+  ).length;
   const successfulRequests = totalRequests - failedRequests;
   const successRate = totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 0;
 
   const durations = generationLogs
-    .filter(log => log.context?.durationMs)
-    .map(log => log.context!.durationMs as number);
+    .filter((log) => log.context?.durationMs)
+    .map((log) => log.context!.durationMs as number);
 
-  const averageGenerationTime = durations.length > 0
-    ? durations.reduce((a, b) => a + b, 0) / durations.length
-    : undefined;
+  const averageGenerationTime =
+    durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : undefined;
 
   return {
     averageGenerationTime,

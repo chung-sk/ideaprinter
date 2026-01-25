@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/ideas/history
- * 
+ *
  * Get paginated idea history (client-side implementation)
  * This endpoint validates query parameters and returns instructions
  * for client-side history retrieval from localStorage.
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // Parse pagination parameters
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));

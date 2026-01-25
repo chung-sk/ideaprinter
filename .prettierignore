@@ -34,6 +34,11 @@ pnpm-lock.yaml
 # Logs
 *.log
 
+# Speckit generated
+.specify/prereq-output.json
+.specify/prereq-output.txt
+.tmp_prereq.json
+
 # Misc
 .DS_Store
 Thumbs.db

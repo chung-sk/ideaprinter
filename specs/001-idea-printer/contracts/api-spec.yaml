@@ -33,14 +33,26 @@ paths:
                 userApiKey:
                   type: string
                   description: Optional user-provided Gemini API key
-                  example: "<<Removed_as_github_security_detected"
+                  example: '<<Removed_as_github_security_detected'
                   minLength: 39
                   maxLength: 39
                 preferredCategory:
                   type: string
                   description: Optional preferred category for idea generation
-                  enum: [Technology, Travel, Finance, Health, Education, Entertainment, Productivity, Social, E-commerce, Other]
-                  example: "Travel"
+                  enum:
+                    [
+                      Technology,
+                      Travel,
+                      Finance,
+                      Health,
+                      Education,
+                      Entertainment,
+                      Productivity,
+                      Social,
+                      E-commerce,
+                      Other,
+                    ]
+                  example: 'Travel'
       responses:
         '200':
           description: Idea generated successfully
@@ -49,14 +61,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/GeneratedIdea'
               example:
-                id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                appName: "NomadNest"
-                category: "Travel"
-                concept: "Apartments with verified wifi speeds."
+                id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+                appName: 'NomadNest'
+                category: 'Travel'
+                concept: 'Apartments with verified wifi speeds.'
                 theGap: "Airbnbs claim 'high-speed wifi' but often deliver 2Mbps."
-                theFix: "A rental platform where every listing requires a verified, timestamped speed test screenshot uploaded weekly."
-                generatedAt: "2025-12-23T10:30:00Z"
-                uniqueId: "NI4QMZ2B"
+                theFix: 'A rental platform where every listing requires a verified, timestamped speed test screenshot uploaded weekly.'
+                generatedAt: '2025-12-23T10:30:00Z'
+                uniqueId: 'NI4QMZ2B'
         '400':
           description: Invalid request parameters
           content:
@@ -64,8 +76,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Invalid API key format"
-                code: "INVALID_REQUEST"
+                error: 'Invalid API key format'
+                code: 'INVALID_REQUEST'
         '429':
           description: Rate limit exceeded
           content:
@@ -73,8 +85,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Too many requests. Please try again in 60 seconds."
-                code: "RATE_LIMIT_EXCEEDED"
+                error: 'Too many requests. Please try again in 60 seconds.'
+                code: 'RATE_LIMIT_EXCEEDED'
         '500':
           description: Internal server error or AI generation failure
           content:
@@ -82,8 +94,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Failed to generate idea. Please try again."
-                code: "GENERATION_FAILED"
+                error: 'Failed to generate idea. Please try again.'
+                code: 'GENERATION_FAILED'
         '504':
           description: Generation timeout (exceeded 5 seconds)
           content:
@@ -91,8 +103,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Idea generation timed out. Please try again."
-                code: "TIMEOUT"
+                error: 'Idea generation timed out. Please try again.'
+                code: 'TIMEOUT'
 
   /ideas/history:
     get:
@@ -137,14 +149,14 @@ paths:
                     $ref: '#/components/schemas/Pagination'
               example:
                 ideas:
-                  - id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-                    appName: "NomadNest"
-                    category: "Travel"
-                    concept: "Apartments with verified wifi speeds."
+                  - id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+                    appName: 'NomadNest'
+                    category: 'Travel'
+                    concept: 'Apartments with verified wifi speeds.'
                     theGap: "Airbnbs claim 'high-speed wifi' but often deliver 2Mbps."
-                    theFix: "A rental platform where every listing requires a verified, timestamped speed test screenshot uploaded weekly."
-                    generatedAt: "2025-12-23T10:30:00Z"
-                    uniqueId: "NI4QMZ2B"
+                    theFix: 'A rental platform where every listing requires a verified, timestamped speed test screenshot uploaded weekly.'
+                    generatedAt: '2025-12-23T10:30:00Z'
+                    uniqueId: 'NI4QMZ2B'
                 pagination:
                   page: 1
                   limit: 20
@@ -186,8 +198,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
               example:
-                error: "Idea not found"
-                code: "NOT_FOUND"
+                error: 'Idea not found'
+                code: 'NOT_FOUND'
 
     delete:
       summary: Delete a generated idea
@@ -231,7 +243,7 @@ paths:
                 $ref: '#/components/schemas/UserConfiguration'
               example:
                 hasCustomApiKey: true
-                preferredCategories: ["Travel", "Technology"]
+                preferredCategories: ['Travel', 'Technology']
                 generationCount: 23
         '401':
           description: Unauthorized - user not authenticated
@@ -256,14 +268,14 @@ paths:
                 geminiApiKey:
                   type: string
                   description: Gemini API key (will be encrypted before storage)
-                  example: "AIzaSyC1234567890abcdefghijklmnopqrstuv"
+                  example: 'AIzaSyC1234567890abcdefghijklmnopqrstuv'
                 preferredCategories:
                   type: array
                   items:
                     type: string
                   maxItems: 5
                   description: Preferred categories for idea generation
-                  example: ["Travel", "Technology"]
+                  example: ['Travel', 'Technology']
       responses:
         '200':
           description: Configuration updated successfully
@@ -303,7 +315,19 @@ components:
           description: Memorable name for the app concept
         category:
           type: string
-          enum: [Technology, Travel, Finance, Health, Education, Entertainment, Productivity, Social, E-commerce, Other]
+          enum:
+            [
+              Technology,
+              Travel,
+              Finance,
+              Health,
+              Education,
+              Entertainment,
+              Productivity,
+              Social,
+              E-commerce,
+              Other,
+            ]
           description: Market segment or domain
         concept:
           type: string

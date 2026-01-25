@@ -1,3 +1,5 @@
+import type { TrendProvenance, TrendSourceKind } from './trends';
+
 export const IDEA_CATEGORIES = [
   'Technology',
   'Travel',
@@ -11,7 +13,7 @@ export const IDEA_CATEGORIES = [
   'Other',
 ] as const;
 
-export type IdeaCategory = typeof IDEA_CATEGORIES[number];
+export type IdeaCategory = (typeof IDEA_CATEGORIES)[number];
 
 // Data model types (per data-model.md)
 
@@ -25,6 +27,7 @@ export interface GeneratedIdea {
   generatedAt: string; // ISO 8601
   uniqueId: string;
   deletedAt?: string; // ISO 8601, for soft delete
+  provenance?: TrendProvenance;
 }
 
 export const GEMINI_MODELS = [
@@ -36,16 +39,22 @@ export const GEMINI_MODELS = [
   'gemini-3-flash-preview',
 ] as const;
 
-export type GeminiModel = typeof GEMINI_MODELS[number];
+export type GeminiModel = (typeof GEMINI_MODELS)[number];
 
 export interface UserConfiguration {
   id: string;
   encryptedGeminiApiKey?: string; // AES-256 encrypted API key
   preferredModel?: GeminiModel; // Selected AI model
   preferredCategories?: IdeaCategory[];
+  preferredSource?: TrendSourceKind;
   generationCount: number;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
+  xTwitterConfig?: {
+    hasToken: boolean;
+    defaultQuery?: string;
+  };
+  encryptedXBearerToken?: string; // AES-256 encrypted X bearer token
 }
 
 export interface GenerationRequest {
@@ -65,6 +74,11 @@ export interface IdeaGenerationRequest {
   userApiKey?: string;
   preferredCategory?: IdeaCategory;
   modelName?: GeminiModel;
+  trendContext?: {
+    content: string;
+    source: string;
+    author?: string;
+  };
 }
 
 export interface IdeaGenerationResponse {
@@ -78,4 +92,16 @@ export interface IdeaGenerationResponse {
   uniqueId: string;
   durationMs: number;
   apiKeySource: 'default' | 'user_provided';
+}
+
+// Simplified type for sharing (subset of GeneratedIdea)
+export interface Idea {
+  id: string;
+  name: string; // maps to appName
+  category: IdeaCategory;
+  generatedAt: string;
+  concept: string;
+  gap: string; // maps to theGap
+  fix: string; // maps to theFix
+  provenance?: TrendProvenance;
 }

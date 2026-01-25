@@ -48,7 +48,7 @@ function generateSessionPassword(): string {
   // In production, this could be tied to user authentication
   // For now, use a combination of stored/generated session ID
   const sessionId = sessionStorage.getItem('ideaPrinter_sessionId');
-  
+
   if (sessionId) {
     return sessionId;
   }
@@ -56,9 +56,9 @@ function generateSessionPassword(): string {
   // Generate new session ID
   const randomBytes = crypto.getRandomValues(new Uint8Array(32));
   const newSessionId = Array.from(randomBytes)
-    .map(b => b.toString(16).padStart(2, '0'))
+    .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
-  
+
   sessionStorage.setItem('ideaPrinter_sessionId', newSessionId);
   return newSessionId;
 }
@@ -81,11 +81,7 @@ export async function encryptApiKey(apiKey: string): Promise<string> {
     const key = await deriveKey(password, salt);
 
     // Encrypt data
-    const encrypted = await crypto.subtle.encrypt(
-      { name: ALGORITHM, iv },
-      key,
-      data
-    );
+    const encrypted = await crypto.subtle.encrypt({ name: ALGORITHM, iv }, key, data);
 
     // Combine salt + iv + ciphertext
     const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
@@ -108,7 +104,7 @@ export async function encryptApiKey(apiKey: string): Promise<string> {
 export async function decryptApiKey(encryptedData: string): Promise<string> {
   try {
     // Decode from base64
-    const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+    const combined = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
 
     // Extract salt, iv, and ciphertext
     const salt = combined.slice(0, SALT_LENGTH);
@@ -120,11 +116,7 @@ export async function decryptApiKey(encryptedData: string): Promise<string> {
     const key = await deriveKey(password, salt);
 
     // Decrypt data
-    const decrypted = await crypto.subtle.decrypt(
-      { name: ALGORITHM, iv },
-      key,
-      ciphertext
-    );
+    const decrypted = await crypto.subtle.decrypt({ name: ALGORITHM, iv }, key, ciphertext);
 
     // Convert to string
     const decoder = new TextDecoder();
@@ -156,11 +148,7 @@ export function isCryptoAvailable(): boolean {
  * Gemini keys start with "AIza" and are 39 characters long
  */
 export function validateGeminiApiKey(apiKey: string): boolean {
-  return (
-    typeof apiKey === 'string' &&
-    apiKey.startsWith('AIza') &&
-    apiKey.length === 39
-  );
+  return typeof apiKey === 'string' && apiKey.startsWith('AIza') && apiKey.length === 39;
 }
 
 /**

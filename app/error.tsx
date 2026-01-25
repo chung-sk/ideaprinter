@@ -29,9 +29,7 @@ export default function Error({
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          Something went wrong!
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong!</h1>
 
         <p className="text-gray-600 mb-6">
           We apologize for the inconvenience. The printer encountered an unexpected error.
@@ -39,9 +37,7 @@ export default function Error({
 
         {error.message && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 text-left">
-            <p className="text-xs font-mono text-gray-700 break-words">
-              {error.message}
-            </p>
+            <p className="text-xs font-mono text-gray-700 break-words">{error.message}</p>
           </div>
         )}
 

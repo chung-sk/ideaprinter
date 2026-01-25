@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkGlobalQuota, incrementGlobalQuota, isUsingSharedKey } from '@/lib/auth/globalQuota';
 import { createGeminiClient } from '@/lib/gemini/client';
 import { createIdeaPrompt } from '@/lib/gemini/prompts';
 import { generateUniqueId } from '@/lib/utils/idGenerator';
@@ -24,7 +25,27 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body: IdeaGenerationRequest = await request.json().catch(() => ({}));
     userApiKey = body.userApiKey;
-    const { preferredCategory, modelName } = body;
+    const { preferredCategory, modelName, trendContext } = body;
+
+    // Determine if using shared key
+    const usingSharedKey = isUsingSharedKey(userApiKey);
+
+    // Global Quota Check (only for shared key)
+    if (usingSharedKey) {
+      const quotaStatus = checkGlobalQuota();
+
+      if (!quotaStatus.isAllowed) {
+        return NextResponse.json(
+          {
+            error:
+              'Shared API key quota exhausted. Please try again later or provide your own API key.',
+            code: 'RATE_LIMIT_EXCEEDED',
+            retryAfter: quotaStatus.retryAfter,
+          },
+          { status: 429 }
+        );
+      }
+    }
 
     // Log generation request
     logGenerationRequest({
@@ -52,7 +73,7 @@ export async function POST(request: NextRequest) {
     const geminiClient = createGeminiClient(userApiKey, modelName);
 
     // Generate prompt
-    const prompt = createIdeaPrompt(preferredCategory);
+    const prompt = createIdeaPrompt(preferredCategory, trendContext);
 
     // Generate idea with 50-second timeout (within the 60s route limit)
     const responseText = await geminiClient.generateIdea(prompt, 50000);
@@ -61,7 +82,10 @@ export async function POST(request: NextRequest) {
     let ideaData;
     try {
       // Remove markdown code blocks if present
-      const cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const cleanedText = responseText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
       ideaData = JSON.parse(cleanedText);
     } catch {
       console.error('Failed to parse AI response:', responseText);
@@ -87,6 +111,11 @@ export async function POST(request: NextRequest) {
 
     // Calculate duration
     const durationMs = Date.now() - startTime;
+
+    // Increment global quota (only for shared key)
+    if (usingSharedKey) {
+      incrementGlobalQuota();
+    }
 
     // Construct response
     const response: IdeaGenerationResponse = {
@@ -138,13 +167,16 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error) {
       // Handle timeout
       if (error.message.includes('timeout')) {
-        logGenerationFailure({
-          requestId,
-          errorMessage: 'Idea generation timed out',
-          durationMs,
-          apiKeySource: userApiKey ? 'user_provided' : 'default',
-        }, error);
-        
+        logGenerationFailure(
+          {
+            requestId,
+            errorMessage: 'Idea generation timed out',
+            durationMs,
+            apiKeySource: userApiKey ? 'user_provided' : 'default',
+          },
+          error
+        );
+
         return NextResponse.json(
           { error: 'Idea generation timed out. Please try again.', code: 'TIMEOUT' },
           { status: 504 }
@@ -153,13 +185,16 @@ export async function POST(request: NextRequest) {
 
       // Handle API errors
       if (error.message.includes('API key')) {
-        logApiError({
-          endpoint: '/api/generate-idea',
-          method: 'POST',
-          statusCode: 400,
-          errorMessage: 'Invalid API key',
-        }, error);
-        
+        logApiError(
+          {
+            endpoint: '/api/generate-idea',
+            method: 'POST',
+            statusCode: 400,
+            errorMessage: 'Invalid API key',
+          },
+          error
+        );
+
         return NextResponse.json(
           { error: 'Invalid API key', code: 'INVALID_REQUEST' },
           { status: 400 }
@@ -167,14 +202,17 @@ export async function POST(request: NextRequest) {
       }
 
       console.error('Generation error:', error.message);
-      
-      logGenerationFailure({
-        requestId,
-        errorMessage: error.message,
-        durationMs,
-        apiKeySource: userApiKey ? 'user_provided' : 'default',
-      }, error);
-      
+
+      logGenerationFailure(
+        {
+          requestId,
+          errorMessage: error.message,
+          durationMs,
+          apiKeySource: userApiKey ? 'user_provided' : 'default',
+        },
+        error
+      );
+
       return NextResponse.json(
         { error: 'Failed to generate idea. Please try again.', code: 'GENERATION_FAILED' },
         { status: 500 }
