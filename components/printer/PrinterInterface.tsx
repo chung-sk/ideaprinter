@@ -12,6 +12,7 @@ import {
 } from '@/lib/utils/storage';
 import { decryptApiKey } from '@/lib/utils/encryption';
 import { fetchQuotaInfo, QuotaInfo } from '@/lib/auth/sessionClient';
+import { getTrialStatus, incrementTrialUsage, canGenerateIdea } from '@/lib/auth/trialQuota';
 import { v4 as uuidv4 } from 'uuid';
 import { motion } from 'framer-motion';
 import { Shuffle, Trash2, Settings, History, Newspaper, Sparkles } from 'lucide-react';
@@ -20,6 +21,8 @@ import PaperOutput from './PaperOutput';
 import PrintButton from './PrintButton';
 import TrendInterface from './TrendInterface';
 import ErrorMessage from '../common/ErrorMessage';
+import TrialProgressBanner from './TrialProgressBanner';
+import TrialUpgradePrompt from '../common/TrialUpgradePrompt';
 import { printerBodyVariants, prefersReducedMotion } from './animations';
 import { soundManager, playSound } from '@/lib/utils/soundEffects';
 
@@ -47,6 +50,8 @@ export default function PrinterInterface() {
   const [isMobile, setIsMobile] = useState(false);
   const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
   const [userApiKey, setUserApiKey] = useState<string | undefined>();
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [trialStatus, setTrialStatus] = useState({ ideasGenerated: 0, remainingIdeas: 3 });
 
   // Trend Mode State
   const [mode, setMode] = useState<GenerationMode>('random');
@@ -80,6 +85,14 @@ export default function PrinterInterface() {
 
     document.addEventListener('click', resumeAudio);
     document.addEventListener('touchstart', resumeAudio);
+
+    // Load trial status (async)
+    getTrialStatus().then(currentTrialStatus => {
+      setTrialStatus({
+        ideasGenerated: currentTrialStatus.ideasGenerated,
+        remainingIdeas: currentTrialStatus.remainingIdeas,
+      });
+    });
 
     // Load user API key and fetch quota info on mount
     loadUserConfig();
@@ -148,6 +161,9 @@ export default function PrinterInterface() {
     // Play paper feed sound when starting to print
     playSound('paperFeed', 0.5);
 
+    // Check trial quota before generating (async)
+    const currentTrialStatus = await getTrialStatus();
+    
     // Get user configuration (API key, preferred model, categories)
     let currentApiKey: string | undefined = userApiKey;
     let preferredModel: string | undefined;
@@ -161,6 +177,14 @@ export default function PrinterInterface() {
         console.error('Failed to decrypt API key:', decryptError);
         // Continue with default key
       }
+    }
+
+    // If no user API key and trial is exceeded, show upgrade prompt
+    if (!currentApiKey && currentTrialStatus.hasExceededLimit) {
+      setIsLoading(false);
+      setShowUpgradePrompt(true);
+      setError('Trial limit reached. Please create an account to continue.');
+      return;
     }
 
     if (userConfig?.preferredModel) {
@@ -199,12 +223,16 @@ export default function PrinterInterface() {
           source: string;
           author?: string;
         };
+        trialQuotaUsed?: number;
+        hasTrialStarted?: boolean;
       }
 
       const requestBody: RequestBody = {
         preferredCategory: selectedCategory, // Pass selected category if any
         userApiKey: currentApiKey, // Pass user's API key if available
         modelName: preferredModel, // Pass preferred model if configured
+        trialQuotaUsed: currentTrialStatus.ideasGenerated,
+        hasTrialStarted: currentTrialStatus.isTrialActive || currentTrialStatus.hasExceededLimit,
       };
 
       // Add trend context if in trend mode and post is selected
@@ -292,6 +320,23 @@ export default function PrinterInterface() {
         console.warn('Failed to save idea to localStorage');
       }
 
+      // Increment trial usage if using shared key (no user API key)
+      if (!currentApiKey) {
+        incrementTrialUsage();
+        // Update trial status for UI (async)
+        getTrialStatus().then(updatedTrialStatus => {
+          setTrialStatus({
+            ideasGenerated: updatedTrialStatus.ideasGenerated,
+            remainingIdeas: updatedTrialStatus.remainingIdeas,
+          });
+          
+          // Show upgrade prompt if just hit the limit
+          if (updatedTrialStatus.hasExceededLimit) {
+            setTimeout(() => setShowUpgradePrompt(true), 2000); // Show after 2 seconds
+          }
+        });
+      }
+
       // Update generation request to success
       updateGenerationRequest(requestId, {
         status: 'success',
@@ -333,9 +378,27 @@ export default function PrinterInterface() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 md:p-8 pt-24 md:pt-32 bg-[#e0dcd5] relative">
+    <>
+      {/* Trial Progress Banner - only show if using trial (no user API key) */}
+      {!userApiKey && trialStatus.ideasGenerated > 0 && (
+        <TrialProgressBanner
+          ideasGenerated={trialStatus.ideasGenerated}
+          remainingIdeas={trialStatus.remainingIdeas}
+        />
+      )}
+      
+      {/* Trial Upgrade Prompt Modal */}
+      {showUpgradePrompt && (
+        <TrialUpgradePrompt
+          isOpen={showUpgradePrompt}
+          ideasGenerated={trialStatus.ideasGenerated}
+          onClose={() => setShowUpgradePrompt(false)}
+        />
+      )}
+      
+      <div className="min-h-screen flex flex-col items-center p-4 md:p-8 pt-24 md:pt-32 bg-[#e0dcd5] relative">
       {/* Quota Info - Top Left */}
-      <div className="absolute md:fixed top-4 md:top-8 left-4 md:left-8 bg-white rounded-lg shadow-lg p-4 z-50 max-w-xs">
+      <div className="absolute md:fixed top-20 md:top-24 left-4 md:left-8 bg-white rounded-lg shadow-lg p-4 z-40 max-w-xs">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500 font-mono">API Key:</span>
@@ -364,6 +427,38 @@ export default function PrinterInterface() {
 
       {/* Top Navigation (Settings and History) */}
       <div className="absolute md:fixed top-4 md:top-8 right-4 md:right-8 flex gap-4 z-50">
+        {/* Logo Branding - Compact */}
+        <div className="flex items-center gap-3 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg mr-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/assets/brand/ideaprinter-logo.svg"
+            alt="IdeaPrinter"
+            width={20}
+            height={20}
+            className="object-contain"
+          />
+          <span className="font-bold text-sm text-gray-800 tracking-tight">
+            ideaprinter
+          </span>
+          <a
+            href="https://rytix.tech"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[8px] uppercase tracking-wider text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            by rytix
+          </a>
+        </div>
+        
+        <Link
+          href="/"
+          className="p-4 bg-white hover:bg-gray-50 rounded-full shadow-lg transition-all hover:shadow-xl group"
+          aria-label="Home"
+        >
+          <svg className="w-6 h-6 text-gray-700 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </Link>
         <Link
           href="/history"
           className="p-4 bg-white hover:bg-gray-50 rounded-full shadow-lg transition-all hover:shadow-xl group"
@@ -547,5 +642,6 @@ export default function PrinterInterface() {
         <p>MEMO-RITE CORP. // MODEL 8392-XJ</p>
       </div>
     </div>
+    </>
   );
 }

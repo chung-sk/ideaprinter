@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import WebVitalsReporter from '@/components/common/WebVitalsReporter';
-import Branding from '@/components/common/Branding';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -75,12 +74,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.className} overflow-x-hidden`}>
         <WebVitalsReporter />
-        {/* Branding Header - centered to avoid session info */}
-        <header className="w-full flex justify-center pt-4 pb-2 md:fixed md:top-4 md:left-1/2 md:transform md:-translate-x-1/2 md:pt-0 md:pb-0 z-50 bg-transparent pointer-events-none" role="banner">
-          <div className="pointer-events-auto">
-            <Branding variant="header" />
-          </div>
-        </header>
         {children}
       </body>
     </html>

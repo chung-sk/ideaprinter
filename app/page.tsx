@@ -1,5 +1,6 @@
-import PrinterInterface from '@/components/printer/PrinterInterface';
+import LandingPage from '@/components/landing/LandingPage';
+import '@/components/landing/landing.css';
 
 export default function HomePage() {
-  return <PrinterInterface />;
+  return <LandingPage />;
 }

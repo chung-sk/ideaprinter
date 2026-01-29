@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Space Mono font for landing page */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
 :root {
   --color-printer-beige: #f5e6d3;
   --color-printer-brown: #8b4513;

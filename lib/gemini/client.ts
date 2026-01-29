@@ -12,12 +12,12 @@ export class GeminiClient {
 
   async generateIdea(prompt: string, timeoutMs: number = 5000): Promise<string> {
     try {
-      console.log(`🤖 Calling Gemini API with model: ${this.model}`);
+      console.log(`�robot Calling Gemini API with model: ${this.model}`);
       const model = this.client.getGenerativeModel({ model: this.model });
 
       // Create timeout promise
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Generation timeout exceeded')), timeoutMs);
+        setTimeout(() => reject(new Error('Request timed out after 60 seconds. Please try again.')), timeoutMs);
       });
 
       // Create generation promise
@@ -31,13 +31,155 @@ export class GeminiClient {
 
       console.log(`✅ Successfully generated idea using ${this.model}`);
       return text;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`❌ Failed to generate idea using ${this.model}:`, error);
-      if (error instanceof Error) {
-        throw new Error(`Gemini API error: ${error.message}`);
-      }
-      throw new Error('Unknown error occurred during idea generation');
+      throw this.parseError(error);
     }
+  }
+
+  private parseError(error: any): Error {
+    // Handle timeout
+    if (error.message === 'Request timed out after 60 seconds. Please try again.') {
+      return error;
+    }
+
+    // Parse quota/rate limit errors
+    if (error?.status === 429 || error?.message?.includes('quota') || error?.message?.includes('429')) {
+      return this.parseQuotaError(error);
+    }
+
+    // Parse other common errors
+    if (error?.status === 401) {
+      return new Error('Invalid API key. Please check your Gemini API key in Settings.');
+    }
+
+    if (error?.status === 404) {
+      return new Error('Model not found. Please select a valid model in Settings.');
+    }
+
+    if (error?.status === 400 && error?.message?.includes('payload size exceeds')) {
+      return new Error('Input is too long. Please try a shorter prompt.');
+    }
+
+    // Generic fallback
+    if (error instanceof Error) {
+      return new Error(`Generation failed: ${error.message}`);
+    }
+
+    return new Error('An unexpected error occurred. Please try again.');
+  }
+
+  private parseQuotaError(error: any): Error {
+    let limit = '20';
+    let retrySeconds = 60;
+    let model = this.model;
+
+    try {
+      // The error structure from Gemini API includes errorDetails array
+      // Example from actual error:
+      // errorDetails: [
+      //   { "@type": "type.googleapis.com/google.rpc.Help", links: [...] },
+      //   { "@type": "type.googleapis.com/google.rpc.QuotaFailure", violations: [...] },
+      //   { "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "54s" }
+      // ]
+      
+      if (error?.errorDetails && Array.isArray(error.errorDetails)) {
+        for (const detail of error.errorDetails) {
+          const detailType = detail['@type'] || '';
+          
+          // Extract retry delay from RetryInfo
+          if (detailType.includes('RetryInfo') && detail.retryDelay) {
+            const delayStr = String(detail.retryDelay).replace('s', '');
+            const seconds = parseFloat(delayStr);
+            if (!isNaN(seconds) && seconds > 0) {
+              retrySeconds = Math.ceil(seconds);
+            }
+          }
+          
+          // Extract quota limit from QuotaFailure
+          if (detailType.includes('QuotaFailure') && detail.violations) {
+            const violation = detail.violations[0];
+            if (violation?.quotaValue) {
+              limit = String(violation.quotaValue);
+            }
+            // Also try to get model name from quotaDimensions
+            if (violation?.quotaDimensions?.model) {
+              model = violation.quotaDimensions.model;
+            }
+          }
+        }
+      }
+
+      // Fallback: Try to parse from error message string
+      const errorMessage = error.message || JSON.stringify(error);
+      
+      // Look for "limit: XX" pattern
+      const limitMatch = errorMessage.match(/limit:\s*(\d+)/i);
+      if (limitMatch) {
+        limit = limitMatch[1];
+      }
+
+      // Look for "retry in XXs" pattern
+      const retryMatch = errorMessage.match(/retry in\s+([\d.]+)s/i);
+      if (retryMatch) {
+        const seconds = parseFloat(retryMatch[1]);
+        if (!isNaN(seconds) && seconds > 0) {
+          retrySeconds = Math.ceil(seconds);
+        }
+      }
+
+      // Look for model name
+      const modelMatch = errorMessage.match(/model[:\s]+([a-z0-9.-]+)/i);
+      if (modelMatch) {
+        model = modelMatch[1] as GeminiModel;
+      }
+    } catch (e) {
+      console.warn('Failed to parse quota error details, using defaults', e);
+    }
+
+    // Calculate time until midnight Pacific Time (when quotas reset)
+    const { resetTimeFormatted, timeUntilReset } = this.getQuotaResetTime();
+
+    const message = `Daily quota limit reached (${limit} requests per day for ${model}).\n\nPlease wait ${timeUntilReset} until quota resets.\n\nDaily quota resets at ${resetTimeFormatted}.\n\nOr add your own Gemini API key in Settings for unlimited usage.`;
+    
+    return new Error(message);
+  }
+
+  private getQuotaResetTime(): { resetTimeFormatted: string; timeUntilReset: string } {
+    // Google API quotas reset at midnight Pacific Time (PT)
+    const now = new Date();
+    
+    // Get current time in Pacific timezone
+    const ptTimeString = now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+    const ptNow = new Date(ptTimeString);
+    
+    // Calculate midnight PT tomorrow
+    const midnightPT = new Date(ptNow);
+    midnightPT.setHours(24, 0, 0, 0);
+    
+    // Calculate time until midnight PT
+    const msUntilMidnightPT = midnightPT.getTime() - ptNow.getTime();
+    const hoursUntilReset = Math.floor(msUntilMidnightPT / (1000 * 60 * 60));
+    const minutesUntilReset = Math.floor((msUntilMidnightPT % (1000 * 60 * 60)) / (1000 * 60));
+    
+    // Format the reset time in user's local timezone
+    const resetTimeLocalMs = now.getTime() + msUntilMidnightPT;
+    const resetTimeLocal = new Date(resetTimeLocalMs);
+    const resetTimeFormatted = resetTimeLocal.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    // Format time until reset
+    let timeUntilReset: string;
+    if (hoursUntilReset > 0) {
+      timeUntilReset = `${hoursUntilReset}h ${minutesUntilReset}m`;
+    } else {
+      timeUntilReset = `${minutesUntilReset} minutes`;
+    }
+    
+    return { resetTimeFormatted, timeUntilReset };
   }
 
   async streamIdea(prompt: string): Promise<AsyncIterable<string>> {

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkGlobalQuota, incrementGlobalQuota, isUsingSharedKey } from '@/lib/auth/globalQuota';
+import { canIpGenerateIdea, incrementIpTrialUsage, getIpTrialStatus } from '@/lib/auth/serverTrialQuota';
+import { getClientIp } from '@/lib/utils/ipAddress';
 import { createGeminiClient } from '@/lib/gemini/client';
 import { createIdeaPrompt } from '@/lib/gemini/prompts';
 import { generateUniqueId } from '@/lib/utils/idGenerator';
@@ -29,6 +31,23 @@ export async function POST(request: NextRequest) {
 
     // Determine if using shared key
     const usingSharedKey = isUsingSharedKey(userApiKey);
+
+    // Server-Side Trial Check (only for users without API key)
+    if (usingSharedKey) {
+      const clientIp = getClientIp(request);
+      
+      if (!canIpGenerateIdea(clientIp)) {
+        const trialStatus = getIpTrialStatus(clientIp);
+        return NextResponse.json(
+          {
+            error: 'Trial limit reached. Please add your own API key to continue.',
+            code: 'TRIAL_LIMIT_EXCEEDED',
+            trialStatus,
+          },
+          { status: 403 }
+        );
+      }
+    }
 
     // Global Quota Check (only for shared key)
     if (usingSharedKey) {
@@ -76,7 +95,33 @@ export async function POST(request: NextRequest) {
     const prompt = createIdeaPrompt(preferredCategory, trendContext);
 
     // Generate idea with 50-second timeout (within the 60s route limit)
-    const responseText = await geminiClient.generateIdea(prompt, 50000);
+    let responseText: string;
+    try {
+      responseText = await geminiClient.generateIdea(prompt, 50000);
+    } catch (error: any) {
+      // Log the error
+      const errorMessage = error.message || 'Failed to generate idea';
+      logGenerationFailure({
+        requestId,
+        errorMessage,
+        durationMs: Date.now() - startTime,
+        apiKeySource: userApiKey ? 'user_provided' : 'default',
+      });
+      
+      // Determine status code based on error type
+      const isRateLimitError = error?.status === 429 || 
+                               errorMessage.includes('quota') || 
+                               errorMessage.includes('429') ||
+                               errorMessage.includes('rate limit');
+      
+      return NextResponse.json(
+        {
+          error: errorMessage,
+          code: isRateLimitError ? 'RATE_LIMIT_EXCEEDED' : 'GENERATION_FAILED',
+        },
+        { status: isRateLimitError ? 429 : 500 }
+      );
+    }
 
     // Parse JSON response
     let ideaData;
@@ -89,6 +134,12 @@ export async function POST(request: NextRequest) {
       ideaData = JSON.parse(cleanedText);
     } catch {
       console.error('Failed to parse AI response:', responseText);
+      logGenerationFailure({
+        requestId,
+        errorMessage: 'Failed to parse AI response',
+        durationMs: Date.now() - startTime,
+        apiKeySource: userApiKey ? 'user_provided' : 'default',
+      });
       return NextResponse.json(
         { error: 'Failed to parse generated idea', code: 'GENERATION_FAILED' },
         { status: 500 }
@@ -112,9 +163,13 @@ export async function POST(request: NextRequest) {
     // Calculate duration
     const durationMs = Date.now() - startTime;
 
-    // Increment global quota (only for shared key)
+    // Increment counters (only for shared key)
     if (usingSharedKey) {
       incrementGlobalQuota();
+      
+      // Increment server-side trial usage
+      const clientIp = getClientIp(request);
+      incrementIpTrialUsage(clientIp);
     }
 
     // Construct response
