@@ -92,3 +92,6 @@ test-new-limits.js
 /playwright-report
 /playwright-report
 /playwright-report
+/.agents
+/.github
+/ideaprinter-demo
