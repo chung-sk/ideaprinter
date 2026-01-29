@@ -12,7 +12,7 @@ import {
 } from '@/lib/utils/storage';
 import { decryptApiKey } from '@/lib/utils/encryption';
 import { fetchQuotaInfo, QuotaInfo } from '@/lib/auth/sessionClient';
-import { getTrialStatus, incrementTrialUsage, canGenerateIdea } from '@/lib/auth/trialQuota';
+import { getTrialStatus, incrementTrialUsage } from '@/lib/auth/trialQuota';
 import { v4 as uuidv4 } from 'uuid';
 import { motion } from 'framer-motion';
 import { Shuffle, Trash2, Settings, History, Newspaper, Sparkles } from 'lucide-react';

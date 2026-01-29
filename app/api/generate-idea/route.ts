@@ -98,9 +98,9 @@ export async function POST(request: NextRequest) {
     let responseText: string;
     try {
       responseText = await geminiClient.generateIdea(prompt, 50000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log the error
-      const errorMessage = error.message || 'Failed to generate idea';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate idea';
       logGenerationFailure({
         requestId,
         errorMessage,
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
       });
       
       // Determine status code based on error type
-      const isRateLimitError = error?.status === 429 || 
-                               errorMessage.includes('quota') || 
+      const isRateLimitError = (error && typeof error === 'object' && 'status' in error && error.status === 429) ||
+                               errorMessage.includes('quota') ||
                                errorMessage.includes('429') ||
                                errorMessage.includes('rate limit');
       

@@ -31,33 +31,36 @@ export class GeminiClient {
 
       console.log(`✅ Successfully generated idea using ${this.model}`);
       return text;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`❌ Failed to generate idea using ${this.model}:`, error);
       throw this.parseError(error);
     }
   }
 
-  private parseError(error: any): Error {
+  private parseError(error: unknown): Error {
     // Handle timeout
-    if (error.message === 'Request timed out after 60 seconds. Please try again.') {
+    if (error instanceof Error && error.message === 'Request timed out after 60 seconds. Please try again.') {
       return error;
     }
 
+    const errorObj = error as { status?: number; message?: string };
+    const errorMessage = error instanceof Error ? error.message : errorObj.message;
+
     // Parse quota/rate limit errors
-    if (error?.status === 429 || error?.message?.includes('quota') || error?.message?.includes('429')) {
+    if (errorObj.status === 429 || errorMessage?.includes('quota') || errorMessage?.includes('429')) {
       return this.parseQuotaError(error);
     }
 
     // Parse other common errors
-    if (error?.status === 401) {
+    if (errorObj.status === 401) {
       return new Error('Invalid API key. Please check your Gemini API key in Settings.');
     }
 
-    if (error?.status === 404) {
+    if (errorObj.status === 404) {
       return new Error('Model not found. Please select a valid model in Settings.');
     }
 
-    if (error?.status === 400 && error?.message?.includes('payload size exceeds')) {
+    if (errorObj.status === 400 && errorMessage?.includes('payload size exceeds')) {
       return new Error('Input is too long. Please try a shorter prompt.');
     }
 
@@ -69,10 +72,11 @@ export class GeminiClient {
     return new Error('An unexpected error occurred. Please try again.');
   }
 
-  private parseQuotaError(error: any): Error {
+  private parseQuotaError(error: unknown): Error {
     let limit = '20';
-    let retrySeconds = 60;
     let model = this.model;
+
+    const errorObj = error as { status?: number; message?: string; errorDetails?: Array<Record<string, unknown>> };
 
     try {
       // The error structure from Gemini API includes errorDetails array
@@ -82,36 +86,41 @@ export class GeminiClient {
       //   { "@type": "type.googleapis.com/google.rpc.QuotaFailure", violations: [...] },
       //   { "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "54s" }
       // ]
-      
-      if (error?.errorDetails && Array.isArray(error.errorDetails)) {
-        for (const detail of error.errorDetails) {
-          const detailType = detail['@type'] || '';
+
+      if (errorObj.errorDetails && Array.isArray(errorObj.errorDetails)) {
+        for (const detail of errorObj.errorDetails) {
+          const detailType = String(detail['@type'] || '');
           
           // Extract retry delay from RetryInfo
           if (detailType.includes('RetryInfo') && detail.retryDelay) {
             const delayStr = String(detail.retryDelay).replace('s', '');
             const seconds = parseFloat(delayStr);
+            // Note: retrySeconds is only used for logging, not in final error message
             if (!isNaN(seconds) && seconds > 0) {
-              retrySeconds = Math.ceil(seconds);
+              // Retry info extracted but not used in current implementation
             }
           }
           
           // Extract quota limit from QuotaFailure
-          if (detailType.includes('QuotaFailure') && detail.violations) {
-            const violation = detail.violations[0];
+          if (detailType.includes('QuotaFailure') && Array.isArray((detail as { violations?: unknown[] }).violations)) {
+            const violations = (detail as { violations: Array<Record<string, unknown>> }).violations;
+            const violation = violations[0];
             if (violation?.quotaValue) {
               limit = String(violation.quotaValue);
             }
             // Also try to get model name from quotaDimensions
-            if (violation?.quotaDimensions?.model) {
-              model = violation.quotaDimensions.model;
+            if (violation?.quotaDimensions && typeof violation.quotaDimensions === 'object') {
+              const quotaDimensions = violation.quotaDimensions as { model?: string };
+              if (quotaDimensions.model) {
+                model = quotaDimensions.model as GeminiModel;
+              }
             }
           }
         }
       }
 
       // Fallback: Try to parse from error message string
-      const errorMessage = error.message || JSON.stringify(error);
+      const errorMessage = errorObj.message || JSON.stringify(error);
       
       // Look for "limit: XX" pattern
       const limitMatch = errorMessage.match(/limit:\s*(\d+)/i);
@@ -119,14 +128,8 @@ export class GeminiClient {
         limit = limitMatch[1];
       }
 
-      // Look for "retry in XXs" pattern
-      const retryMatch = errorMessage.match(/retry in\s+([\d.]+)s/i);
-      if (retryMatch) {
-        const seconds = parseFloat(retryMatch[1]);
-        if (!isNaN(seconds) && seconds > 0) {
-          retrySeconds = Math.ceil(seconds);
-        }
-      }
+      // Look for "retry in XXs" pattern (not currently used in error message)
+      // const retryMatch = errorMessage.match(/retry in\s+([\d.]+)s/i);
 
       // Look for model name
       const modelMatch = errorMessage.match(/model[:\s]+([a-z0-9.-]+)/i);

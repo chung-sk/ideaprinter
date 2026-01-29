@@ -12,7 +12,6 @@ interface TrialProgressBannerProps {
 }
 
 export default function TrialProgressBanner({
-  ideasGenerated,
   remainingIdeas,
   onDismiss,
 }: TrialProgressBannerProps) {
