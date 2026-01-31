@@ -25,15 +25,17 @@ The app features a delightful retro printer aesthetic with animations, sound eff
 
 Watch the app in action:
 
+<!-- TODO: Once GitHub account is restored, edit this file on GitHub web and drag-drop demo/demo-video/github-demo.mp4 here to create inline video player -->
+
 <div align="center">
   <a href="https://github.com/chung-sk/ideaprinter/raw/001-idea-printer/demo/demo-video/github-demo.mp4">
     <img src="demo/demo-video/demo.jpg" alt="Idea Printer Demo" width="800">
   </a>
   <br>
-  <em>👆 Click the image above to watch the demo video</em>
+  <em>👆 Click to download and watch the demo video</em>
+  <br><br>
+  <em>🎥 Inline video player coming soon - waiting for GitHub CDN upload</em>
 </div>
-
-<!-- Alternative: Once you can access GitHub, drag and drop the video file here to get an inline player -->
 
 ## 🆕 Recent Updates
 
