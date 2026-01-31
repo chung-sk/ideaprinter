@@ -27,7 +27,7 @@ Watch the app in action:
 
 https://github.com/chung-sk/ideaprinter/assets/github-demo.mp4
 
-> **Note**: If the video doesn't display above, you can [download and view it here](demo/2月1日/github-demo.mp4).
+> **Note**: If the video doesn't display above, you can [download and view it here](demo/demo-video/github-demo.mp4).
 
 ## 🆕 Recent Updates
 
