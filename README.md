@@ -21,6 +21,14 @@ Idea Printer is a web application that generates unique, market-driven app ideas
 
 The app features a delightful retro printer aesthetic with animations, sound effects, and shareable QR codes.
 
+## 🎬 Demo
+
+Watch the app in action:
+
+https://github.com/chung-sk/ideaprinter/assets/github-demo.mp4
+
+> **Note**: If the video doesn't display above, you can [download and view it here](demo/2月1日/github-demo.mp4).
+
 ## 🆕 Recent Updates
 
 For the full shipped feature list and technical details, see [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md).
