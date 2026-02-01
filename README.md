@@ -363,4 +363,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ and AI** | [ideaprinter.app](https://ideaprinter.app)
+**Made with ❤️ and AI** | [ideaprinter.app](https://ideaprinter.rytix.tech)
