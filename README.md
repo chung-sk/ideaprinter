@@ -25,15 +25,6 @@ The app features a delightful retro printer aesthetic with animations, sound eff
 
 Watch the app in action:
 
-<div align="center">
-  <a href="https://github.com/chung-sk/ideaprinter/raw/001-idea-printer/demo/demo-video/github-demo.mp4">
-    <img src="demo/demo-video/demo.jpg" alt="Idea Printer Demo" width="800">
-  </a>
-  <br>
-  <em>👆 Click to download and watch the demo video</em>
-  <br><br>
-</div>
-
 [https://github.com/user-attachments/assets/55ec3f5f-3c11-4cfb-8365-57f2ace67508](https://github.com/user-attachments/assets/c3474ab7-3cdd-4f2f-92d9-098ba9ef992c)
 
 ## 🆕 Recent Updates
