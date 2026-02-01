@@ -95,3 +95,5 @@ test-new-limits.js
 /.agents
 /.github
 /ideaprinter-demo
+/.claude
+/my-video
