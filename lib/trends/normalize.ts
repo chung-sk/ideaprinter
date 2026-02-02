@@ -93,7 +93,7 @@ export function normalizeTrendPost(rawPost: RawTrendPost, sourceKind: TrendSourc
   const id =
     rawPost.externalId ||
     (canonicalUrl
-      ? `url-${Buffer.from(canonicalUrl).toString('base64').substring(0, 20)}`
+      ? `url-${Buffer.from(canonicalUrl).toString('base64')}`
       : `tmp-${Date.now()}`);
 
   return {

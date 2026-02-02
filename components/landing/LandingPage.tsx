@@ -39,14 +39,14 @@ export default function LandingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Decorative printer icon */}
+          {/* Decorative printer icon - moved to corner */}
           <motion.div
-            className="hero-icon"
-            initial={{ scale: 0, rotate: -180 }}
+            className="hero-icon-corner"
+            initial={{ scale: 0, rotate: -90 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
           >
-            <Printer size={64} strokeWidth={1.5} />
+            <Printer size={48} strokeWidth={2} />
           </motion.div>
 
           <motion.h1
@@ -57,7 +57,9 @@ export default function LandingPage() {
           >
             Print Your Next
             <br />
-            <span className="highlight">Million Dollar Idea</span>
+            <span className="highlight">Million Dollar</span>
+            <br />
+            <span className="highlight-alt">Idea</span>
           </motion.h1>
 
           <motion.p
@@ -79,12 +81,13 @@ export default function LandingPage() {
             transition={{ delay: 0.7, duration: 0.6 }}
           >
             <Link href="/printer" className="btn-primary">
-              <Sparkles size={20} />
-              Try Free - No Login Required
-              <ChevronRight size={20} />
+              <Sparkles size={18} />
+              <span>Try Free</span>
+              <ChevronRight size={18} />
             </Link>
             <p className="trial-notice">
-              <Zap size={16} />3 free ideas to start • No credit card needed
+              <Zap size={14} />
+              <span>3 free ideas • No login required</span>
             </p>
           </motion.div>
         </motion.div>

@@ -123,12 +123,26 @@ async function fetchFeed(feedUrl: string): Promise<RawTrendPost[]> {
         const content = item.description || item.title;
         const contentStr = typeof content === 'string' ? content : String(content || '');
 
+        // Extract author as string (handle object structures from Atom feeds)
+        let authorStr: string | null = null;
+        const rawAuthor = item['dc:creator'] || item.author;
+        if (rawAuthor) {
+          if (typeof rawAuthor === 'string') {
+            authorStr = rawAuthor;
+          } else if (typeof rawAuthor === 'object' && rawAuthor !== null) {
+            // Handle structured author objects (e.g., Atom: {name: "...", email: "..."})
+            authorStr = rawAuthor['name'] || rawAuthor['email'] || String(rawAuthor);
+          } else {
+            authorStr = String(rawAuthor);
+          }
+        }
+
         return {
           externalId: link
-            ? `rss-${Buffer.from(link).toString('base64').substring(0, 20)}`
+            ? `rss-${Buffer.from(link).toString('base64')}`
             : undefined,
           content: contentStr,
-          author: item['dc:creator'] || item.author || null,
+          author: authorStr,
           postedAt: item.pubDate || null,
           sourceUrl: link,
         };
