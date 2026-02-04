@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkGlobalQuota, incrementGlobalQuota, isUsingSharedKey } from '@/lib/auth/globalQuota';
-import { canIpGenerateIdea, incrementIpTrialUsage, getIpTrialStatus } from '@/lib/auth/serverTrialQuota';
-import { getClientIp } from '@/lib/utils/ipAddress';
+import { readTrialCookie, setTrialCookie, isTrialExhausted } from '@/lib/auth/trialCookie';
 import { createGeminiClient } from '@/lib/gemini/client';
 import { createIdeaPrompt } from '@/lib/gemini/prompts';
 import { generateUniqueId } from '@/lib/utils/idGenerator';
@@ -32,21 +31,17 @@ export async function POST(request: NextRequest) {
     // Determine if using shared key
     const usingSharedKey = isUsingSharedKey(userApiKey);
 
-    // Server-Side Trial Check (only for users without API key)
-    if (usingSharedKey) {
-      const clientIp = getClientIp(request);
-      
-      if (!canIpGenerateIdea(clientIp)) {
-        const trialStatus = getIpTrialStatus(clientIp);
-        return NextResponse.json(
-          {
-            error: 'Trial limit reached. Please add your own API key to continue.',
-            code: 'TRIAL_LIMIT_EXCEEDED',
-            trialStatus,
-          },
-          { status: 403 }
-        );
-      }
+    // Server-Side Trial Check — read HttpOnly signed cookie
+    const trialPayload = readTrialCookie(request);
+    if (usingSharedKey && isTrialExhausted(trialPayload)) {
+      return NextResponse.json(
+        {
+          error: 'Trial limit reached. Please add your own API key to continue.',
+          code: 'TRIAL_LIMIT_EXCEEDED',
+          trialStatus: { ideasGenerated: trialPayload.trialCount, remainingIdeas: 0 },
+        },
+        { status: 403 }
+      );
     }
 
     // Global Quota Check (only for shared key)
@@ -166,10 +161,6 @@ export async function POST(request: NextRequest) {
     // Increment counters (only for shared key)
     if (usingSharedKey) {
       incrementGlobalQuota();
-      
-      // Increment server-side trial usage
-      const clientIp = getClientIp(request);
-      incrementIpTrialUsage(clientIp);
     }
 
     // Construct response
@@ -215,7 +206,17 @@ export async function POST(request: NextRequest) {
       apiKeySource: response.apiKeySource,
     });
 
-    return NextResponse.json(response, { status: 200 });
+    const successResponse = NextResponse.json(response, { status: 200 });
+
+    // Write updated trial cookie (only for shared-key users)
+    if (usingSharedKey) {
+      setTrialCookie(successResponse, {
+        trialCount:     trialPayload.trialCount + 1,
+        trialStartedAt: trialPayload.trialStartedAt || Date.now(),
+      });
+    }
+
+    return successResponse;
   } catch (error) {
     const durationMs = Date.now() - startTime;
 

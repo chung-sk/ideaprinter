@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getIpTrialStatus } from '@/lib/auth/serverTrialQuota';
-import { getClientIp } from '@/lib/utils/ipAddress';
+import { readTrialCookie, isTrialExhausted, TRIAL_LIMIT } from '@/lib/auth/trialCookie';
 
 export async function GET(request: NextRequest) {
-  try {
-    const clientIp = getClientIp(request);
-    const trialStatus = getIpTrialStatus(clientIp);
-    
-    return NextResponse.json(trialStatus);
-  } catch (error) {
-    console.error('Failed to get trial status:', error);
-    return NextResponse.json(
-      { error: 'Failed to retrieve trial status' },
-      { status: 500 }
-    );
-  }
+  const payload = readTrialCookie(request);
+
+  return NextResponse.json({
+    ideasGenerated:  payload.trialCount,
+    remainingIdeas:  Math.max(0, TRIAL_LIMIT - payload.trialCount),
+    isTrialActive:   !isTrialExhausted(payload),
+    hasExceededLimit: isTrialExhausted(payload),
+  });
 }
