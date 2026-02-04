@@ -12,7 +12,6 @@ import {
 } from '@/lib/utils/storage';
 import { decryptApiKey } from '@/lib/utils/encryption';
 import { fetchQuotaInfo, QuotaInfo } from '@/lib/auth/sessionClient';
-import { getTrialStatus, incrementTrialUsage } from '@/lib/auth/trialQuota';
 import { v4 as uuidv4 } from 'uuid';
 import { motion } from 'framer-motion';
 import { Shuffle, Trash2, Settings, History, Newspaper, Sparkles } from 'lucide-react';
@@ -25,6 +24,15 @@ import TrialProgressBanner from './TrialProgressBanner';
 import TrialUpgradePrompt from '../common/TrialUpgradePrompt';
 import { printerBodyVariants, prefersReducedMotion } from './animations';
 import { soundManager, playSound } from '@/lib/utils/soundEffects';
+
+
+async function fetchTrialStatus(): Promise<{ ideasGenerated: number; remainingIdeas: number; hasExceededLimit: boolean; isTrialActive: boolean }> {
+  try {
+    const res = await fetch('/api/trial-status');
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+  return { ideasGenerated: 0, remainingIdeas: 3, hasExceededLimit: false, isTrialActive: true };
+}
 
 const CATEGORIES = [
   'Productivity',
@@ -86,12 +94,9 @@ export default function PrinterInterface() {
     document.addEventListener('click', resumeAudio);
     document.addEventListener('touchstart', resumeAudio);
 
-    // Load trial status (async)
-    getTrialStatus().then(currentTrialStatus => {
-      setTrialStatus({
-        ideasGenerated: currentTrialStatus.ideasGenerated,
-        remainingIdeas: currentTrialStatus.remainingIdeas,
-      });
+    // Load trial status from server
+    fetchTrialStatus().then(s => {
+      setTrialStatus({ ideasGenerated: s.ideasGenerated, remainingIdeas: s.remainingIdeas });
     });
 
     // Load user API key and fetch quota info on mount
@@ -161,8 +166,8 @@ export default function PrinterInterface() {
     // Play paper feed sound when starting to print
     playSound('paperFeed', 0.5);
 
-    // Check trial quota before generating (async)
-    const currentTrialStatus = await getTrialStatus();
+    // Check trial quota from server before generating
+    const currentTrialStatus = await fetchTrialStatus();
     
     // Get user configuration (API key, preferred model, categories)
     let currentApiKey: string | undefined = userApiKey;
@@ -223,16 +228,12 @@ export default function PrinterInterface() {
           source: string;
           author?: string;
         };
-        trialQuotaUsed?: number;
-        hasTrialStarted?: boolean;
       }
 
       const requestBody: RequestBody = {
         preferredCategory: selectedCategory, // Pass selected category if any
         userApiKey: currentApiKey, // Pass user's API key if available
         modelName: preferredModel, // Pass preferred model if configured
-        trialQuotaUsed: currentTrialStatus.ideasGenerated,
-        hasTrialStarted: currentTrialStatus.isTrialActive || currentTrialStatus.hasExceededLimit,
       };
 
       // Add trend context if in trend mode and post is selected
@@ -320,19 +321,15 @@ export default function PrinterInterface() {
         console.warn('Failed to save idea to localStorage');
       }
 
-      // Increment trial usage if using shared key (no user API key)
+      // Refresh trial status from server (cookie was updated by the API)
       if (!currentApiKey) {
-        incrementTrialUsage();
-        // Update trial status for UI (async)
-        getTrialStatus().then(updatedTrialStatus => {
+        fetchTrialStatus().then(updatedTrialStatus => {
           setTrialStatus({
             ideasGenerated: updatedTrialStatus.ideasGenerated,
             remainingIdeas: updatedTrialStatus.remainingIdeas,
           });
-          
-          // Show upgrade prompt if just hit the limit
           if (updatedTrialStatus.hasExceededLimit) {
-            setTimeout(() => setShowUpgradePrompt(true), 2000); // Show after 2 seconds
+            setTimeout(() => setShowUpgradePrompt(true), 2000);
           }
         });
       }
